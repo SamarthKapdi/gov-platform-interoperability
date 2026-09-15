@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-gov-blue-50: #eff6ff;
+  --color-gov-blue-100: #dbeafe;
+  --color-gov-blue-500: #3b82f6;
+  --color-gov-blue-600: #2563eb;
+  --color-gov-blue-700: #1d4ed8;
+  --color-gov-blue-800: #1e40af;
+  --color-gov-blue-900: #1e3a8a;
+}
