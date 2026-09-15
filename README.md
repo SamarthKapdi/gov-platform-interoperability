@@ -1,183 +1,131 @@
-# gov-platform-interoperability
+﻿# 🏛️ MAHA-SETU: Government Interoperability Platform
 
-[![language](https://img.shields.io/badge/language-JavaScript-yellow.svg)]()
-[![status](https://img.shields.io/badge/status-Prototype-blue.svg)]()
+![SIH 2026](https://img.shields.io/badge/SIH_2026-Problem_26129-orange?style=for-the-badge)
+![Architecture](https://img.shields.io/badge/Architecture-Federated_Microservices-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A lightweight JavaScript reference implementation and toolkit for secure, auditable interoperability between government platforms and services — enabling standardized data exchange, authentication, policy-driven routing, and pluggable adapters for legacy systems.
+**A federated, event-driven interoperability layer for Indian government departments.** Built in strict adherence to IndEA (India Enterprise Architecture) standards, MAHA-SETU enables seamless, consent-driven data exchange across disconnected legacy government databases without centralized data replication.
 
-Repository: https://github.com/SamarthKapdi/gov-platform-interoperability
+---
 
-Table of contents
-- Features
-- Architecture (high level)
-- Tech stack
-- Getting started
-  - Prerequisites
-  - Install
-  - Configuration
-  - Run (development & production)
-- Usage examples
-- Adapter pattern
-- Testing
-- Docker (optional)
-- Contributing
-- Roadmap
-- Security
-- License
-- Contact & acknowledgements
+## 🚨 The Problem (SIH 26129)
+Government departments operate in silos using disparate tech stacks, legacy formats (XML, SOAP, JSON), and fragmented citizen identifiers. Forcing a massive centralized data migration is technically and politically infeasible. Citizens suffer from repetitive KYC, and officials lack a holistic 360° view of beneficiaries.
 
+## 💡 The Solution
+MAHA-SETU acts as an intelligent abstraction layer. It leaves the data at its source and connects it dynamically through on-the-fly adapter normalization, a Master Data Management (MDM) fuzzy-matching engine, and a DEPA-compliant consent framework. 
 
-Features
-- Standardized API surface for data exchange between governmental services
-- Pluggable adapters to translate and connect to existing backends (databases, legacy APIs)
-- Authentication & authorization examples (OAuth2 / JWT)
-- Audit logging for requests and policy decisions (append-only)
-- Config-driven routing and transformation pipelines
-- Example integration flows and a test harness
+### ✨ Key Features
+- **🧩 Pluggable Adapters:** Transform legacy formats (e.g., XML/SOAP) into canonical IndEA JSON schemas instantly.
+- **🧬 MDM Golden Record:** Dynamically links fragmented citizen profiles across departments based on fuzzy matching (Name, DOB, Mobile).
+- **🔒 DEPA Consent Framework:** Citizens have absolute control over cross-department data sharing. Records are cryptographically locked until explicit, verifiable consent is granted.
+- **🔀 Lightweight BPMN Engine:** State-machine orchestrator for multi-department approvals, featuring dynamic SVG flowcharts.
+- **🛡️ OIDC API Gateway:** Single entry point enforcing JWT validation, RBAC, and rate limiting.
+- **📬 Resilient Event Bus:** Built-in Pub/Sub with a Dead-Letter Queue that automatically retries failed cross-department notifications.
 
-Architecture (high level)
-1. Ingress API: public endpoints that receive standardized messages.
-2. Gateway & Policy Engine: applies authorization rules, transformations, and routing decisions.
-3. Adapter Layer: connector modules that translate standardized messages to system-specific formats.
-4. Audit & Observability: append-only logs, request tracing, and metrics.
-5. Admin Console (optional): manage policies, adapters, and monitoring.
+---
 
-(Consider adding an architecture diagram in /docs/architecture.png)
+## 🏗️ Architecture
 
-Tech stack
-- Runtime: Node.js (14+ recommended, 18+ preferred)
-- Language: JavaScript
-- Web framework: Express or Fastify (project code determines exact choice)
-- Auth: OAuth2 / JWT examples included
-- Persistence: pluggable (Postgres / MongoDB / in-memory for tests)
-- Testing: Jest / Supertest
-- Observability: OpenTelemetry / Prometheus (optional)
+`mermaid
+graph TD
+    subgraph Frontends
+        C[Citizen Portal]
+        O[Official Dashboard]
+    end
 
-Getting started
+    G[API Gateway :3000]
+    
+    subgraph Platform Services
+        ID[Identity/OIDC :3020]
+        MDM[MDM Engine :3030]
+        CON[Consent Service :3040]
+        WF[Workflow Engine :3060]
+        AUD[Audit & Exception :3070]
+        EB[Event Bus :3050]
+    end
 
-Prerequisites
-- Node.js >= 14 (18+ recommended)
-- npm or yarn
-- Optional: Docker & docker-compose (for quick local infra)
+    subgraph Adapters & Source Systems
+        A1[Adapter A :3011] --> D1[(Dept A - JSON)]
+        A2[Adapter B :3012] --> D2[(Dept B - Legacy XML)]
+        A3[Adapter C :3013] --> D3[(Dept C - SOAP)]
+    end
 
-Clone the repo
+    C --> G
+    O --> G
+    G --> ID
+    G --> MDM
+    G --> CON
+    G --> WF
+    
+    MDM --> A1
+    MDM --> A2
+    MDM --> A3
+    
+    WF -.-> EB
+    CON -.-> EB
+    EB -.-> AUD
+`
 
-    git clone https://github.com/SamarthKapdi/gov-platform-interoperability.git
-    cd gov-platform-interoperability
+---
 
-Install dependencies
+## 🚀 Quick Start (Local Setup)
 
-    npm install
-    # or
-    yarn install
+The entire federated ecosystem (9 microservices + 2 frontends) can be booted locally for demonstration.
 
-Configuration
-Copy the example environment file and update values to match your environment:
+### Prerequisites
+- Node.js (v18+)
+- npm
 
-    cp .env.example .env
+### 1. Install Dependencies
+`ash
+npm install
+cd citizen-portal && npm install
+cd ../official-dashboard && npm install
+cd ..
+`
 
-Example .env (replace placeholder values before running)
+### 2. Seed Databases
+Resets the deterministic demo state across all 9 microservices.
+`ash
+npm run seed
+`
 
-    PORT=3000
-    NODE_ENV=development
-    DATABASE_URL=postgres://user:password@localhost:5432/govdb
-    JWT_SECRET=replace-with-a-secure-secret
-    OAUTH_CLIENT_ID=your-client-id
-    OAUTH_CLIENT_SECRET=your-client-secret
-    AUDIT_LOG_PATH=./logs/audit.log
+### 3. Start the Ecosystem
+Boot up all department APIs, adapters, core services, and frontends concurrently.
+`ash
+npm run start:all
+`
 
-Run (development)
+### 4. Trigger MDM Matching
+In a new terminal, trigger the fuzzy-matching engine to generate the Golden Records:
+`ash
+curl -X POST http://localhost:3030/match
+# or using PowerShell:
+# Invoke-RestMethod -Method POST -Uri http://localhost:3030/match
+`
 
-    npm run dev
-    # or
-    node src/index.js
+---
 
-Run (production)
+## 🧪 E2E Automation Testing
+The platform includes an exhaustive 30-step E2E integration test suite that verifies Gateway health, RBAC enforcement, Golden Record matching, Consent Revocation, Dead-Letter queues, and workflow persistence.
 
-    npm run build
-    npm start
+`ash
+npm run test:all
+`
 
-Suggested npm scripts (add these to package.json if not present)
-- "dev": "nodemon src/index.js"
-- "lint": "eslint . --ext .js"
-- "test": "jest"
-- "build": "" # add build step if using a bundler/transpiler
-- "start": "node ./dist/index.js" # adjust for your build output
+---
 
-Usage examples
+## 🎮 Demo Credentials
 
-Start the server (dev):
+Access the live applications at:
+- **Citizen Portal:** http://localhost:5173
+- **Official Dashboard:** http://localhost:5174
 
-    npm run dev
+| Role | Username | Password |
+|------|----------|----------|
+| Citizen | \citizen_demo\ | \password123\ |
+| Dept Official | \official_a\ | \password123\ |
+| Administrator | \dmin\ | \dmin123\ |
 
-Sample API: send a standardized exchange request
-
-    curl -X POST http://localhost:3000/v1/exchange \
-      -H "Authorization: Bearer <JWT_TOKEN>" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "requestId": "req-123",
-        "source": "agency-a",
-        "target": "agency-b",
-        "payload": {
-          "person": {
-            "givenName": "Jane",
-            "familyName": "Doe"
-          }
-        }
-      }'
-
-Adapter pattern (concept)
-- Path: adapters/<adapter-name>/index.js
-  - transform(standardPayload) -> adapter-specific format
-  - call adapter API or DB
-  - map adapter response -> standardized response
-
-Testing
-- Unit tests: npm test
-- Integration tests: run adapters against a test harness or local mock services
-- Use Supertest to exercise HTTP endpoints and assert audit logs and policy decisions
-
-Docker (optional)
-Consider a docker-compose.yml that starts the API and a Postgres instance for local testing. Keep secrets out of images; use environment variables or a secrets manager.
-
-Contributing
-We welcome contributions. Suggested workflow:
-1. Open an issue to discuss major changes before implementing.
-2. Create a feature branch: git checkout -b feat/my-feature
-3. Implement changes, add tests, update docs.
-4. Run lint and tests locally.
-5. Open a pull request describing the change and linking any related issues.
-
-PR checklist
-- [ ] Tests added/updated
-- [ ] Lint passes
-- [ ] Documentation updated
-- [ ] Security considerations documented for new endpoints/adapters
-
-Roadmap (suggested)
-- Reference adapters for common government systems (identity registry, benefits DB)
-- Policy UI for non-developers to edit routing/consent rules
-- Event-driven bridging (Kafka / RabbitMQ) examples
-- Compliance templates and audit exports
-
-Security
-- Keep JWT and OAuth secrets out of source control; use environment variables or a secret manager.
-- Use TLS for all external communications.
-- Store audit logs with appropriate access controls and retention policies.
-- Perform threat modeling for any adapter that exposes legacy systems.
-
-License
-No license file is present in the repository. If you want to open-source this project, add a LICENSE file (MIT or Apache-2.0 are common choices).
-
-Acknowledgements
-Inspired by cross-agency interoperability initiatives, secure API gateway patterns, and pluggable adapter architectures.
-
-Contact
-Repository: https://github.com/SamarthKapdi/gov-platform-interoperability
-
-If you'd like, I can also:
-- add a .env.example with the variables shown above,
-- add a starter docker-compose.yml,
-- add a simple adapters/example adapter and minimal server skeleton,
-- or update the README with any project-specific commands or diagrams you prefer.
+---
+*Built for the Smart India Hackathon 2026*
