@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sih26129.gov.in/schemas/citizen.json",
+  "title": "Citizen",
+  "description": "Canonical citizen schema — single source of truth across all departments. Aligned with IndEA (India Enterprise Architecture) entity conventions.",
+  "type": "object",
+  "required": ["canonicalId", "name", "dateOfBirth", "mobile"],
+  "properties": {
+    "canonicalId": {
+      "type": "string",
+      "description": "System-generated canonical identifier (UUID). This is the golden record ID from the MDM service.",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Full name of the citizen (normalized: trimmed, title-case).",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth in ISO 8601 format (YYYY-MM-DD)."
+    },
+    "mobile": {
+      "type": "string",
+      "description": "10-digit Indian mobile number.",
+      "pattern": "^[6-9][0-9]{9}$"
+    },
+    "email": {
+      "type": ["string", "null"],
+      "format": "email",
+      "description": "Email address (optional)."
+    },
+    "address": {
+      "type": ["string", "null"],
+      "description": "Full address (optional).",
+      "maxLength": 500
+    },
+    "departmentLinks": {
+      "type": "array",
+      "description": "Links to this citizen's records in each department system. Populated by the MDM matching service.",
+      "items": {
+        "type": "object",
+        "required": ["department", "departmentId"],
+        "properties": {
+          "department": {
+            "type": "string",
+            "enum": ["DEPT_A", "DEPT_B", "DEPT_C"],
+            "description": "Department code."
+          },
+          "departmentId": {
+            "type": "string",
+            "description": "The citizen's identifier in that department's system (e.g. citizen_uid, ApplicantID, beneficiary_code)."
+          },
+          "departmentIdField": {
+            "type": "string",
+            "description": "Name of the ID field in the department's native schema."
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

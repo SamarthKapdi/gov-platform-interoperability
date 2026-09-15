@@ -1,0 +1,16 @@
+{
+  "name": "dept-b-employment-registry",
+  "version": "1.0.0",
+  "description": "Dept B Employment Registry Service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@sih/shared": "*",
+    "cors": "^2.8.5",
+    "express": "^4.19.0",
+    "morgan": "^1.10.0"
+  }
+}

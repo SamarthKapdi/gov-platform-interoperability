@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sih26129.gov.in/schemas/grievance.json",
+  "title": "Grievance",
+  "description": "Canonical grievance schema — specialized sub-type of Application for Dept C. Separated for richer domain modeling. Aligned with DIGIT eGov Foundation grievance entity conventions.",
+  "type": "object",
+  "required": ["grievanceId", "canonicalCitizenId", "subject", "status"],
+  "properties": {
+    "grievanceId": {
+      "type": "string",
+      "description": "Canonical grievance identifier (UUID)."
+    },
+    "canonicalCitizenId": {
+      "type": "string",
+      "description": "References the citizen's canonical ID from the MDM golden record."
+    },
+    "department": {
+      "type": "string",
+      "const": "DEPT_C",
+      "description": "Always DEPT_C for grievances."
+    },
+    "departmentRefId": {
+      "type": "string",
+      "description": "The grievance's native complaint_id in Dept C."
+    },
+    "departmentCitizenId": {
+      "type": "string",
+      "description": "The citizen's beneficiary_code in Dept C."
+    },
+    "subject": {
+      "type": "string",
+      "description": "Brief subject/title of the grievance.",
+      "maxLength": 300
+    },
+    "description": {
+      "type": ["string", "null"],
+      "description": "Detailed description of the grievance.",
+      "maxLength": 5000
+    },
+    "category": {
+      "type": ["string", "null"],
+      "enum": ["SERVICE_DELAY", "DOCUMENT_ISSUE", "PAYMENT_ISSUE", "STAFF_CONDUCT", "OTHER", null],
+      "description": "Grievance category."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["FILED", "UNDER_REVIEW", "IN_PROGRESS", "RESOLVED", "CLOSED", "REOPENED"],
+      "description": "Current resolution status."
+    },
+    "filedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedAt": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
