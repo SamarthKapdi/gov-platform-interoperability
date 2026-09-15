@@ -1,0 +1,16 @@
+{
+  "name": "@sih/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities for the SIH 26129 interoperability platform",
+  "main": "index.js",
+  "dependencies": {
+    "sql.js": "^1.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "uuid": "^10.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "morgan": "^1.10.0"
+  }
+}

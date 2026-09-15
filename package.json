@@ -1,0 +1,36 @@
+{
+  "name": "sih-26129-interoperability-platform",
+  "version": "1.0.0",
+  "description": "Government Interoperability & Federated Service Delivery Platform — SIH 2026 PS 26129",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "dept-a",
+    "dept-b",
+    "dept-c",
+    "adapters/adapter-a",
+    "adapters/adapter-b",
+    "adapters/adapter-c",
+    "gateway",
+    "identity",
+    "consent-service",
+    "event-bus",
+    "mdm-service",
+    "workflow",
+    "audit-service",
+    "citizen-portal",
+    "official-dashboard"
+  ],
+  "scripts": {
+    "seed": "node seed/seed-all.js",
+    "start:deps": "concurrently \"npm start -w dept-a\" \"npm start -w dept-b\" \"npm start -w dept-c\"",
+    "start:adapters": "concurrently \"npm start -w adapters/adapter-a\" \"npm start -w adapters/adapter-b\" \"npm start -w adapters/adapter-c\"",
+    "start:services": "concurrently \"npm start -w identity\" \"npm start -w gateway\" \"npm start -w consent-service\" \"npm start -w event-bus\" \"npm start -w mdm-service\" \"npm start -w workflow\" \"npm start -w audit-service\"",
+    "start:frontend": "concurrently \"npm run dev -w citizen-portal\" \"npm run dev -w official-dashboard\"",
+    "start:all": "concurrently \"npm run start:deps\" \"npm run start:adapters\" \"npm run start:services\" \"npm run start:frontend\"",
+    "test:all": "node scripts/test-all.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,10 @@
+# Shared Dockerfile for Node.js backend services
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+# Copy shared module
+COPY --from=shared /shared /shared
+RUN npm install --production
+COPY . .
+EXPOSE ${PORT:-3000}
+CMD ["node", "server.js"]
