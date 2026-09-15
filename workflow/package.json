@@ -1,0 +1,17 @@
+{
+  "name": "workflow-service",
+  "version": "1.0.0",
+  "description": "Workflow Orchestration Service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@sih/shared": "*",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.1"
+  }
+}
