@@ -1,0 +1,239 @@
+version: '3.8'
+
+# SIH 26129 — Government Interoperability & Federated Service Delivery Platform
+# Single docker-compose up brings up the entire prototype stack.
+
+services:
+  # ─── Infrastructure ────────────────────────────────────────
+  redis:
+    image: redis:alpine
+    container_name: sih-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ─── Mock Department Services ──────────────────────────────
+  dept-a:
+    build: ./dept-a
+    container_name: sih-dept-a
+    ports:
+      - "3001:3001"
+    volumes:
+      - dept-a-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  dept-b:
+    build: ./dept-b
+    container_name: sih-dept-b
+    ports:
+      - "3002:3002"
+    volumes:
+      - dept-b-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3002/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  dept-c:
+    build: ./dept-c
+    container_name: sih-dept-c
+    ports:
+      - "3003:3003"
+    volumes:
+      - dept-c-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3003/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ─── Adapter / Connector Layer ─────────────────────────────
+  adapter-a:
+    build: ./adapters/adapter-a
+    container_name: sih-adapter-a
+    ports:
+      - "3011:3011"
+    environment:
+      - DEPT_A_URL=http://dept-a:3001
+    depends_on:
+      dept-a:
+        condition: service_healthy
+    restart: unless-stopped
+
+  adapter-b:
+    build: ./adapters/adapter-b
+    container_name: sih-adapter-b
+    ports:
+      - "3012:3012"
+    environment:
+      - DEPT_B_URL=http://dept-b:3002
+    depends_on:
+      dept-b:
+        condition: service_healthy
+    restart: unless-stopped
+
+  adapter-c:
+    build: ./adapters/adapter-c
+    container_name: sih-adapter-c
+    ports:
+      - "3013:3013"
+    environment:
+      - DEPT_C_URL=http://dept-c:3003
+    depends_on:
+      dept-c:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Core Platform Services ────────────────────────────────
+  identity:
+    build: ./identity
+    container_name: sih-identity
+    ports:
+      - "3020:3020"
+    volumes:
+      - identity-data:/app/data
+    restart: unless-stopped
+
+  mdm-service:
+    build: ./mdm-service
+    container_name: sih-mdm
+    ports:
+      - "3030:3030"
+    environment:
+      - DEPT_A_URL=http://dept-a:3001
+      - DEPT_B_URL=http://dept-b:3002
+      - DEPT_C_URL=http://dept-c:3003
+      - ADAPTER_A_URL=http://adapter-a:3011
+      - ADAPTER_B_URL=http://adapter-b:3012
+      - ADAPTER_C_URL=http://adapter-c:3013
+    volumes:
+      - mdm-data:/app/data
+    depends_on:
+      - dept-a
+      - dept-b
+      - dept-c
+    restart: unless-stopped
+
+  consent-service:
+    build: ./consent-service
+    container_name: sih-consent
+    ports:
+      - "3040:3040"
+    environment:
+      - AUDIT_SERVICE_URL=http://audit-service:3070
+    volumes:
+      - consent-data:/app/data
+    depends_on:
+      - audit-service
+    restart: unless-stopped
+
+  event-bus:
+    build: ./event-bus
+    container_name: sih-event-bus
+    ports:
+      - "3050:3050"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - events-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  workflow:
+    build: ./workflow
+    container_name: sih-workflow
+    ports:
+      - "3060:3060"
+    environment:
+      - DEPT_A_URL=http://dept-a:3001
+      - DEPT_C_URL=http://dept-c:3003
+      - EVENT_BUS_URL=http://event-bus:3050
+    volumes:
+      - workflow-data:/app/data
+    depends_on:
+      - dept-a
+      - dept-c
+      - event-bus
+    restart: unless-stopped
+
+  audit-service:
+    build: ./audit-service
+    container_name: sih-audit
+    ports:
+      - "3070:3070"
+    volumes:
+      - audit-data:/app/data
+    restart: unless-stopped
+
+  # ─── API Gateway ───────────────────────────────────────────
+  gateway:
+    build: ./gateway
+    container_name: sih-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - ADAPTER_A_URL=http://adapter-a:3011
+      - ADAPTER_B_URL=http://adapter-b:3012
+      - ADAPTER_C_URL=http://adapter-c:3013
+      - IDENTITY_URL=http://identity:3020
+      - MDM_URL=http://mdm-service:3030
+      - CONSENT_URL=http://consent-service:3040
+      - EVENT_BUS_URL=http://event-bus:3050
+      - WORKFLOW_URL=http://workflow:3060
+      - AUDIT_URL=http://audit-service:3070
+    depends_on:
+      - adapter-a
+      - adapter-b
+      - adapter-c
+      - identity
+      - mdm-service
+      - consent-service
+      - event-bus
+      - workflow
+      - audit-service
+    restart: unless-stopped
+
+  # ─── Frontend Applications ─────────────────────────────────
+  citizen-portal:
+    build: ./citizen-portal
+    container_name: sih-citizen-portal
+    ports:
+      - "5173:5173"
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  official-dashboard:
+    build: ./official-dashboard
+    container_name: sih-official-dashboard
+    ports:
+      - "5174:5174"
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+volumes:
+  dept-a-data:
+  dept-b-data:
+  dept-c-data:
+  identity-data:
+  mdm-data:
+  consent-data:
+  events-data:
+  workflow-data:
+  audit-data:
