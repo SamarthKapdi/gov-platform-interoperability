@@ -35,11 +35,10 @@ export default function Consent() {
     try {
       await grantConsent({
         citizenId: (user.id || user.sub),
-        grantingDept,
+        grantingDept: requestingDept,
         requestingDept,
         dataScope,
-        purpose,
-        expiresInDays: 365
+        purpose
       });
       setShowNew(false);
       fetchConsents();
@@ -78,18 +77,12 @@ export default function Consent() {
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 mb-8 border-t-4 border-t-blue-800">
           <h3 className="text-lg font-bold text-slate-900 mb-4">Grant Data Access</h3>
           <form onSubmit={handleGrant} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1">Requesting Department</label>
-              <select className="w-full border border-slate-300 rounded-md p-2" required value={requestingDept} onChange={e => setRequestingDept(e.target.value)}>
-                <option value="">Select...</option>
-                <option value="DEPT_A">Department A (Civic)</option>
-                <option value="DEPT_B">Department B (Employment)</option>
-                <option value="DEPT_C">Department C (Welfare)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Providing Department</label>
-              <select className="w-full border border-slate-300 rounded-md p-2" required value={grantingDept} onChange={e => setGrantingDept(e.target.value)}>
+              <select className="w-full border border-slate-300 rounded-md p-2" required value={requestingDept} onChange={e => {
+                setRequestingDept(e.target.value);
+                setGrantingDept(e.target.value);
+              }}>
                 <option value="">Select...</option>
                 <option value="DEPT_A">Department A (Civic)</option>
                 <option value="DEPT_B">Department B (Employment)</option>
@@ -98,7 +91,12 @@ export default function Consent() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1">Data Scope</label>
-              <input type="text" className="w-full border border-slate-300 rounded-md p-2" placeholder="e.g. FULL_PROFILE, VERIFIED_INCOME" required value={dataScope} onChange={e => setDataScope(e.target.value)} />
+              <select className="w-full border border-slate-300 rounded-md p-2" required value={dataScope} onChange={e => setDataScope(e.target.value)}>
+                <option value="">Select...</option>
+                <option value="employment_status">Employment Status</option>
+                <option value="identity_verification">Identity Verification</option>
+                <option value="grievance_records">Grievance Records</option>
+              </select>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1">Purpose of Access</label>
