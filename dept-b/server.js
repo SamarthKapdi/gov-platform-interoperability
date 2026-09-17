@@ -13,6 +13,25 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
+let isOutageSimulated = false;
+
+app.post('/admin/simulate-outage', (req, res) => {
+  isOutageSimulated = true;
+  res.json({ success: true });
+});
+
+app.post('/admin/restore', (req, res) => {
+  isOutageSimulated = false;
+  res.json({ success: true });
+});
+
+app.use((req, res, next) => {
+  if (isOutageSimulated && !req.path.startsWith('/admin')) {
+    return res.status(503).json({ error: 'Service Unavailable' });
+  }
+  next();
+});
+
 async function main() {
   await initializeDb();
 

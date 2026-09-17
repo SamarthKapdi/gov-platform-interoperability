@@ -71,6 +71,28 @@ module.exports = (db) => {
     });
   });
 
+  router.get('/recent', (req, res) => {
+    const limit = parseInt(req.query.limit, 10) || 10;
+    try {
+      const logs = db.prepare('SELECT * FROM event_log ORDER BY id DESC LIMIT ?').all(limit);
+      const results = logs.map(l => ({ ...l, payload: JSON.parse(l.payload) }));
+      res.json(results);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.get('/citizen/:citizenId', (req, res) => {
+    const citizenId = req.params.citizenId;
+    try {
+      const logs = db.prepare('SELECT * FROM event_log WHERE payload LIKE ? ORDER BY id DESC').all(`%"citizenId":"${citizenId}"%`);
+      const results = logs.map(l => ({ ...l, payload: JSON.parse(l.payload) }));
+      res.json(results);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   router.get('/log', (req, res) => {
     const { type, department, limit = 50 } = req.query;
     
@@ -92,7 +114,6 @@ module.exports = (db) => {
 
     try {
       const logs = db.prepare(query).all(...params);
-      // Filter by department if provided (since it's in JSON payload)
       let results = logs.map(l => ({ ...l, payload: JSON.parse(l.payload) }));
       
       if (department) {
