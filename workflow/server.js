@@ -45,17 +45,16 @@ async function main() {
       db.prepare(`
         INSERT INTO workflow_instances (id, application_id, citizen_id, current_state, previous_state, owner, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        'wf-demo-001',
-        'MS-2026-001842',
-        '12345678-1234-1234-1234-123456789012',
-        'SUBMITTED',
-        null,
-        'citizen_demo',
-        now,
-        now
-      );
-      console.log('Seeded demo workflow instance.');
+      `).run('wf-demo-001', 'MS-2026-001842', '12345678-1234-1234-1234-123456789012', 'SUBMITTED', null, 'citizen_demo', now, now);
+
+      const states = ['IN_PROGRESS', 'PENDING_DOCUMENT', 'APPROVED', 'SERVICE_ISSUED'];
+      states.forEach((state, idx) => {
+        db.prepare(`
+          INSERT INTO workflow_instances (id, application_id, citizen_id, current_state, previous_state, owner, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(`wf-demo-00${idx + 2}`, `MS-2026-00184${idx + 3}`, '12345678-1234-1234-1234-123456789012', state, 'SUBMITTED', 'citizen_demo', now, now);
+      });
+      
     }
   };
 

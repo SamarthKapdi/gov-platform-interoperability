@@ -55,10 +55,9 @@ const logAudit = async (req, db, action, entityId, before, after, result) => {
   }
 };
 
-// Start a new workflow
-router.post('/start', (req, res) => {
+router.post('/instances', async (req, res) => {
   const db = req.app.locals.db;
-  const { applicationId, citizenId } = req.body;
+  const { applicationId, citizenId, serviceName, department } = req.body;
   
   const id = uuidv4();
   const now = new Date().toISOString();
@@ -69,17 +68,31 @@ router.post('/start', (req, res) => {
   `).run(id, applicationId, citizenId, 'SUBMITTED', null, citizenId, now, now);
   
   const instance = db.prepare('SELECT * FROM workflow_instances WHERE id = ?').get(id);
+  
+  await publishEvent({
+    type: 'workflow.created',
+    department,
+    citizenId,
+    data: { serviceName, applicationId, id },
+    source: 'workflow-service'
+  });
+  
   res.status(201).json(instance);
 });
 
-// Get all workflows
 router.get('/instances', (req, res) => {
   const db = req.app.locals.db;
-  const rows = db.prepare('SELECT * FROM workflow_instances ORDER BY updated_at DESC').all();
+  const citizenId = req.query.citizen_id;
+  
+  let rows;
+  if (citizenId) {
+    rows = db.prepare('SELECT * FROM workflow_instances WHERE citizen_id = ? ORDER BY updated_at DESC').all(citizenId);
+  } else {
+    rows = db.prepare('SELECT * FROM workflow_instances ORDER BY updated_at DESC').all();
+  }
   res.json(rows);
 });
 
-// Get single workflow
 router.get('/instances/:id', (req, res) => {
   const db = req.app.locals.db;
   const instance = db.prepare('SELECT * FROM workflow_instances WHERE id = ?').get(req.params.id);
