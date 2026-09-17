@@ -24,7 +24,9 @@ export default function Navbar() {
               <div className="hidden md:flex space-x-1">
                 <Link to="/record" className={navItemClass('/record')}>Golden Record</Link>
                 <Link to="/tracker" className={navItemClass('/tracker')}>Unified Tracker</Link>
+                <Link to="/submit" className={navItemClass('/submit')}>Submit Application</Link>
                 <Link to="/consent" className={navItemClass('/consent')}>Consent Centre</Link>
+                <Link to="/notifications" className={navItemClass('/notifications')}>Notifications</Link>
               </div>
             )}
           </div>

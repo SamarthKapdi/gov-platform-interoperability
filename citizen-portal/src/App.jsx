@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Tracker from './pages/Tracker';
 import Consent from './pages/Consent';
 import GoldenRecord from './pages/GoldenRecord';
+import SubmitApplication from './pages/SubmitApplication';
+import Notifications from './pages/Notifications';
 import Navbar from './components/Navbar';
 import { useAuth } from './hooks/useAuth';
 
@@ -30,6 +32,8 @@ function App() {
           <Route path="/tracker" element={<ProtectedRoute><Tracker /></ProtectedRoute>} />
           <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
           <Route path="/record" element={<ProtectedRoute><GoldenRecord /></ProtectedRoute>} />
+          <Route path="/submit" element={<ProtectedRoute><SubmitApplication /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
