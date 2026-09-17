@@ -48,9 +48,13 @@ export const retryException = (id) => {
     body: JSON.stringify({ status: 'RETRY' })
   }).then(r => r.json());
 };
-export const getCitizenRecord = (query) => {
+export const getCitizenRecord = (query, type) => {
   if (query.length === 36 && query.includes('-')) {
     return api.get(`/api/mdm/citizen/${query}/full-profile`);
   }
-  return api.get(`/api/mdm/search?q=${encodeURIComponent(query)}`);
+  return api.get(`/api/mdm/search?q=${encodeURIComponent(query)}${type ? `&type=${type}` : ''}`);
 };
+export const getMetrics = () => api.get('/api/audit/metrics');
+export const getGatewayHealth = () => fetch('http://localhost:3000/health').then(r => r.json());
+export const getRecentEvents = (limit = 5) => api.get(`/api/events/recent?limit=${limit}`);
+export const getWorkflows = () => api.get('/api/workflow/instances');
