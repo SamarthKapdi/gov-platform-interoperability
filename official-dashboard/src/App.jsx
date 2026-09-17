@@ -9,6 +9,9 @@ import Search from './pages/Search';
 import Exceptions from './pages/Exceptions';
 import AuditLog from './pages/AuditLog';
 import Workflows from './pages/Workflows';
+import Architecture from './pages/Architecture';
+import Interoperability from './pages/Interoperability';
+import DemoControls from './pages/DemoControls';
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -59,6 +62,9 @@ function App() {
           <Route path="/exceptions" element={<Exceptions />} />
           <Route path="/audit" element={<AuditLog />} />
           <Route path="/workflows" element={<Workflows />} />
+          <Route path="/architecture" element={<Architecture />} />
+          <Route path="/interoperability" element={<Interoperability />} />
+          <Route path="/demo" element={<DemoControls />} />
         </Route>
       </Routes>
     </BrowserRouter>

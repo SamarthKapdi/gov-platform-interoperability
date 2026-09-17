@@ -3,6 +3,7 @@ import { getCitizenRecord } from '../lib/api';
 
 const Search = () => {
   const [query, setQuery] = useState('');
+  const [searchType, setSearchType] = useState('name');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,7 +18,7 @@ const Search = () => {
     setResult(null);
 
     try {
-      const data = await getCitizenRecord(query);
+      const data = await getCitizenRecord(query, searchType);
       setResult(data);
     } catch (err) {
       if (err.message.includes('403')) {
@@ -38,7 +39,7 @@ const Search = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in p-6">
       <div className="flex justify-between items-end border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Citizen 360</h1>
@@ -48,7 +49,21 @@ const Search = () => {
 
       {/* Search Bar */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <form onSubmit={handleSearch} className="flex gap-4 max-w-3xl">
+        <form onSubmit={handleSearch} className="flex gap-4 max-w-4xl">
+          <div className="w-48">
+            <label htmlFor="searchType" className="sr-only">Search Type</label>
+            <select
+              id="searchType"
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              className="block w-full py-3 px-3 border border-slate-300 rounded-lg leading-5 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 sm:text-sm transition-colors"
+            >
+              <option value="name">Name</option>
+              <option value="mobile">Mobile</option>
+              <option value="canonical_id">Golden ID</option>
+              <option value="department_id">Department ID</option>
+            </select>
+          </div>
           <div className="flex-1">
             <label htmlFor="search" className="sr-only">Search</label>
             <div className="relative">
@@ -61,7 +76,7 @@ const Search = () => {
                 type="text"
                 id="search"
                 className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 sm:text-sm transition-colors"
-                placeholder="Search by Golden ID, Name, or Mobile (Try: citizen1 or 1234567890)"
+                placeholder={`Search by ${searchType}...`}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -156,7 +171,7 @@ const Search = () => {
                   </div>
                   <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Active Consents</h4>
-                    <div className="text-2xl font-bold text-slate-900">1</div>
+                    <div className="text-2xl font-bold text-slate-900">{result.departmentLinks?.filter(l => l.consent_status === 'ACTIVE' || !l.consent_status).length || 0}</div>
                   </div>
                 </div>
               </div>
@@ -171,29 +186,38 @@ const Search = () => {
                   </p>
                 </div>
                 
-                {result.departmentLinks?.map(link => (
-                  <div key={link.department} className="border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start gap-4 hover:bg-slate-50 transition-colors">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">{link.department}</span>
-                        <span className="text-sm font-mono text-slate-500">{link.department_id}</span>
+                {result.departmentLinks?.map(link => {
+                  const consentActive = link.consent_status === 'ACTIVE' || !link.consent_status;
+                  return (
+                    <div key={link.department} className="border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start gap-4 hover:bg-slate-50 transition-colors">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">{link.department}</span>
+                          <span className="text-sm font-mono text-slate-500">{link.department_id}</span>
+                        </div>
+                        <div className="text-sm text-slate-600 mt-2">
+                          Matched on: <span className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">{link.department_id_field}</span>
+                        </div>
+                        <div className="mt-2 flex items-center space-x-2">
+                          <span className="text-xs font-bold text-slate-500 uppercase">Consent:</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${consentActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {link.consent_status || 'ACTIVE'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-sm text-slate-600 mt-2">
-                        Matched on: <span className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">{link.department_id_field}</span>
-                      </div>
+                      {result[link.department] ? (
+                        <div className="bg-slate-900 text-emerald-400 p-3 rounded-md w-full md:w-auto overflow-x-auto">
+                          <pre className="text-[10px] font-mono leading-relaxed">{JSON.stringify(result[link.department], null, 2)}</pre>
+                        </div>
+                      ) : (
+                        <div className="bg-rose-50 text-rose-700 border border-rose-200 px-4 py-2 rounded-md text-sm font-bold flex items-center">
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                          Access Blocked by Citizen Consent
+                        </div>
+                      )}
                     </div>
-                    {result[link.department] ? (
-                      <div className="bg-slate-900 text-emerald-400 p-3 rounded-md w-full md:w-auto overflow-x-auto">
-                        <pre className="text-[10px] font-mono leading-relaxed">{JSON.stringify(result[link.department], null, 2)}</pre>
-                      </div>
-                    ) : (
-                      <div className="bg-rose-50 text-rose-700 border border-rose-200 px-4 py-2 rounded-md text-sm font-bold flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        Access Blocked by Citizen Consent
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
             
