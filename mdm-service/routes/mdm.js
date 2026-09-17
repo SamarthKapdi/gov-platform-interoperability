@@ -78,8 +78,24 @@ router.get('/citizen/:canonicalId/full-profile', async (req, res) => {
 });
 
 router.get('/search', async (req, res) => {
-  const q = `%${req.query.q}%`;
-  const citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE full_name LIKE ? OR mobile LIKE ?').get(q, q);
+  const type = req.query.type;
+  const q = req.query.q;
+  let citizen = null;
+
+  if (type === 'mobile') {
+    citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE mobile = ?').get(q);
+  } else if (type === 'golden_id') {
+    citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE canonical_id = ?').get(q);
+  } else if (type === 'dept_id') {
+    const link = req.db.prepare('SELECT canonical_id FROM department_links WHERE department_id = ?').get(q);
+    if (link) {
+      citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE canonical_id = ?').get(link.canonical_id);
+    }
+  } else {
+    const likeQ = `%${q}%`;
+    citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE full_name LIKE ? OR mobile LIKE ?').get(likeQ, likeQ);
+  }
+
   if (!citizen) return res.status(404).json({ error: 'Not found' });
   
   const departmentLinks = req.db.prepare('SELECT department, department_id, department_id_field FROM department_links WHERE canonical_id = ?').all(citizen.canonical_id);
