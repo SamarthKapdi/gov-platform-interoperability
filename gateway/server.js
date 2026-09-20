@@ -1,3 +1,7 @@
+const util = require('util');
+if (util._extend) {
+  util._extend = Object.assign;
+}
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');

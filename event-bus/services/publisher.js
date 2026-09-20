@@ -16,7 +16,7 @@ class Publisher {
     this.redisPublisher = new Redis(redisUrl, {
       retryStrategy(times) {
         if (times > 3) {
-          console.warn('Redis connection failed, falling back to in-memory event bus.');
+          console.warn('[Event Bus] Transport: Fallback (In-Memory)');
           return null; // Stop retrying
         }
         return Math.min(times * 50, 2000);
@@ -33,7 +33,12 @@ class Publisher {
     });
 
     this.redisPublisher.on('error', (err) => {
-      this.useRedis = false;
+      // suppress unhandled error output after fallback
+      if (this.useRedis) this.useRedis = false;
+    });
+
+    this.redisSubscriber.on('error', (err) => {
+      // suppress unhandled error output
     });
 
     this.redisPublisher.on('connect', () => {

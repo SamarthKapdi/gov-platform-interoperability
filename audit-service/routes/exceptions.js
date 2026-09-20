@@ -76,6 +76,16 @@ router.patch('/:id', (req, res, next) => {
         try {
           const data = JSON.parse(exc.raw_data);
           if (data.url && data.payload) {
+            // SECURITY CHECK: Only allow retry to known local services (adapters/departments)
+            try {
+              const parsedUrl = new URL(data.url);
+              if (parsedUrl.hostname !== '127.0.0.1' && parsedUrl.hostname !== 'localhost') {
+                throw new Error('Forbidden URL');
+              }
+            } catch (e) {
+               return res.status(403).json({ error: 'Untrusted webhook destination' });
+            }
+
             fetch(data.url, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

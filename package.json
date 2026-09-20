@@ -36,6 +36,6 @@
     "test:real-product": "node scripts/real-product-e2e.js"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^9.1.2"
   }
 }

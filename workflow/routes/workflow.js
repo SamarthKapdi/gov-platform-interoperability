@@ -56,6 +56,7 @@ const logAudit = async (req, db, action, entityId, before, after, result) => {
 };
 
 router.post('/instances', async (req, res) => {
+  try {
   const db = req.app.locals.db;
   const { applicationId, citizenId, serviceName, department } = req.body;
   
@@ -78,6 +79,10 @@ router.post('/instances', async (req, res) => {
   });
   
   res.status(201).json(instance);
+  } catch (err) {
+    console.error('CREATE WF ERROR:', err.stack);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.get('/instances', (req, res) => {
@@ -102,6 +107,7 @@ router.get('/instances/:id', (req, res) => {
 
 // Advance workflow
 router.post('/instances/:id/advance', async (req, res) => {
+  try {
   const db = req.app.locals.db;
   const instanceId = req.params.id;
   const actor = req.user ? req.user.name : 'SYSTEM';
@@ -174,6 +180,10 @@ router.post('/instances/:id/advance', async (req, res) => {
 
   const updatedInstance = db.prepare('SELECT * FROM workflow_instances WHERE id = ?').get(instanceId);
   res.json(updatedInstance);
+  } catch (err) {
+    console.error('ADVANCE WF ERROR:', err.stack);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 

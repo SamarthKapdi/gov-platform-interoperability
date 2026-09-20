@@ -10,7 +10,7 @@ async function handleExceptions(data, schemaName) {
   if (result !== true) {
     try {
       // Assuming audit service has an endpoint for tracking exceptions across the system
-      await axios.post('http://localhost:3004/api/audit/exceptions', {
+      await axios.post('http://127.0.0.1:3070/exceptions', {
         service: 'adapter-c',
         type: 'VALIDATION_ERROR',
         details: JSON.stringify(result),

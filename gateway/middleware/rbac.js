@@ -15,5 +15,10 @@ module.exports = (req, res, next) => {
     return requireRole('admin', 'dept_official')(req, res, next);
   }
 
+  // Security Task 8: restrict workflow advancement to internal/official roles
+  if (path.includes('/advance') && method === 'POST') {
+    return requireRole('admin', 'dept_official', 'system')(req, res, next);
+  }
+
   next();
 };

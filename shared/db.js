@@ -36,6 +36,7 @@ class DatabaseWrapper {
     // Save on clean exit
     process.on('exit', () => this._save());
     process.on('SIGINT', () => { this._save(); process.exit(); });
+    setInterval(() => this._save(), 1000).unref();
   }
 
   _save() {
