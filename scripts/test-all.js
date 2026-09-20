@@ -188,6 +188,9 @@ async function runTests() {
   log(res.ok, 'Consent grant');
   const consentId = res.data?.consentId;
 
+  // SIMULATE OUTAGE BEFORE ADVANCE (For Dead-Letter Queue Test later)
+  await fetchAPI(`http://localhost:3002/admin/simulate-outage`, { method: 'POST' });
+
   // PROTECTED ACCESS (Transition allowed after consent)
   let wfSuccess = await fetchAPI(`${BASE_URL}/workflow/instances/wf-demo-001/advance`, {
     method: 'POST',
@@ -216,28 +219,62 @@ async function runTests() {
 
   console.log('');
 
-  // EXCEPTION
-  res = await fetchAPI(`${BASE_URL}/audit/exceptions`, {
+  // NEGATIVE TESTS (Authentication & Authorization)
+  let badAuth = await fetchAPI(`${BASE_URL}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${officialToken}` },
-    body: JSON.stringify({ source: 'test-all', entityType: 'test', errorType: 'TEST', errorMessage: 'Test exception' })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'citizen_demo', password: 'wrongpassword' })
   });
-  log(res.ok, 'Exception creation');
+  log(badAuth.status === 401, 'Negative Test: Invalid Credentials (401)');
 
+  let missingAuth = await fetchAPI(`${BASE_URL}/workflow/instances`, {
+    headers: {}
+  });
+  log(missingAuth.status === 401, 'Negative Test: Missing Token (401)');
+
+  // IDEMPOTENCY TEST (MDM Matching)
+  const matchRes2 = await fetchAPI(`http://localhost:3030/match`, { method: 'POST' });
+  const matchRes3 = await fetchAPI(`http://localhost:3030/match`, { method: 'POST' });
+  log(matchRes2.ok && matchRes3.ok, 'Idempotency Test: Repeated MDM Matches');
+
+  console.log('');
+
+  // EXCEPTION & DEAD LETTER QUEUE (E2E Test)
+  // 1. The workflow was just advanced to DEPT_B_VERIFICATION earlier in the test script (while Dept B was offline).
+  // The event bus is currently trying to deliver the webhook to Dept B. It will fail 3 times and then Dead Letter it.
+  console.log('Waiting 7 seconds for Event Bus webhook retries to fail and dead-letter...');
+  await sleep(7000);
+
+  // 3. Verify Dead Letter Exception was created
   res = await fetchAPI(`${BASE_URL}/audit/exceptions`, { headers: { 'Authorization': `Bearer ${officialToken}` } });
   const excs = Array.isArray(res.data) ? res.data : [];
-  const testExc = excs.find(e => e.source === 'test-all');
-  if (testExc) {
-    res = await fetchAPI(`${BASE_URL}/audit/exceptions/${testExc.id}`, {
+  const webhookExc = excs.find(e => e.entity_type === 'webhook' && e.status === 'PENDING');
+  
+  if (webhookExc) {
+    log(true, 'Exception creation (Dead Letter Queue)');
+
+    // 4. Restore Dept B
+    await fetchAPI(`http://localhost:3002/admin/restore`, { method: 'POST' });
+
+    // 5. Force Retry via Exception Center
+    const retryRes = await fetchAPI(`${BASE_URL}/audit/exceptions/${webhookExc.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${officialToken}` },
       body: JSON.stringify({ status: 'RETRY' })
     });
-    log(res.ok, 'Retry / dead-letter');
-    log(res.ok, 'Recovery');
+
+    log(retryRes.ok && retryRes.data?.success, 'Retry / dead-letter');
+    
+    // 6. Verify Recovery (Status = RESOLVED)
+    const verifyRes = await fetchAPI(`${BASE_URL}/audit/exceptions`, { headers: { 'Authorization': `Bearer ${officialToken}` } });
+    const verifyExcs = Array.isArray(verifyRes.data) ? verifyRes.data : [];
+    const resolvedExc = verifyExcs.find(e => e.id === webhookExc.id && e.status === 'RESOLVED');
+    
+    log(!!resolvedExc, 'Recovery (Webhook Delivered)');
   } else {
-    log(false, 'Retry / dead-letter', JSON.stringify(res.data));
-    log(false, 'Recovery');
+    log(false, 'Exception creation (Dead Letter Queue missing)');
+    log(false, 'Retry / dead-letter');
+    log(false, 'Recovery (Webhook Delivered)');
   }
 
   console.log('');

@@ -1,3 +1,4 @@
+/* TEST FIXTURE - Development and Testing Utilities */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../lib/api';

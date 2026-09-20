@@ -14,7 +14,7 @@ const STATES = [
 
 const publishEvent = async (event) => {
   try {
-    await fetch('http://localhost:3050/events/publish', {
+    await fetch('http://127.0.0.1:3050/events/publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event)
@@ -36,7 +36,7 @@ const logAudit = async (req, db, action, entityId, before, after, result) => {
 
   // Send to central audit service
   try {
-    await fetch('http://localhost:3070/log', {
+    await fetch('http://127.0.0.1:3070/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -123,7 +123,7 @@ router.post('/instances/:id/advance', async (req, res) => {
       // We simulate checking consent via the Gateway
       // The API gateway will return 403 or strip data if consent is missing.
       // But here we directly ask the Consent service for this demo's precision.
-      const consentRes = await fetch(`http://localhost:3040/citizen/${instance.citizen_id}`, {
+      const consentRes = await fetch(`http://127.0.0.1:3040/citizen/${instance.citizen_id}`, {
         headers: { 'Authorization': req.headers.authorization }
       });
       const consents = await consentRes.json();
@@ -150,10 +150,16 @@ router.post('/instances/:id/advance', async (req, res) => {
     WHERE id = ?
   `).run(instance.current_state, nextState, now, instanceId);
 
+  if (nextState === 'SERVICE_ISSUED') {
+    const { v4: uuidv4 } = require('uuid');
+    db.prepare('INSERT INTO service_outputs (id, application_id, service_id, issued_at, issued_by, verification_code, status) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(uuidv4(), instance.application_id, 'SRV-' + instance.id.substring(0,8), now, actor, 'VERIFY-' + Math.random().toString(36).substring(2,8).toUpperCase(), 'ACTIVE');
+  }
+
   // Emit event
   await publishEvent({
     type: 'workflow.transition.completed',
-    payload: {
+    data: {
       workflow_id: instanceId,
       application_id: instance.application_id,
       old_state: instance.current_state,
@@ -168,6 +174,13 @@ router.post('/instances/:id/advance', async (req, res) => {
 
   const updatedInstance = db.prepare('SELECT * FROM workflow_instances WHERE id = ?').get(instanceId);
   res.json(updatedInstance);
+});
+
+
+router.get('/outputs/:applicationId', (req, res) => {
+  const output = req.app.locals.db.prepare('SELECT * FROM service_outputs WHERE application_id = ?').get(req.params.applicationId);
+  if (!output) return res.status(404).json({ error: 'Not found' });
+  res.json(output);
 });
 
 module.exports = router;

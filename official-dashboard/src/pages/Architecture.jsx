@@ -13,24 +13,56 @@ const Architecture = () => {
   const [health, setHealth] = useState({});
 
   useEffect(() => {
-    // Mock health check for architecture nodes to ensure they display
-    setHealth({
-      citizen: 'ONLINE',
-      official: 'ONLINE',
-      gateway: 'ONLINE',
-      identity: 'ONLINE',
-      mdm: 'ONLINE',
-      consent: 'ONLINE',
-      workflow: 'ONLINE',
-      bus: 'ONLINE',
-      audit: 'ONLINE',
-      adapterA: 'ONLINE',
-      adapterB: 'ONLINE',
-      adapterC: 'ONLINE',
-      deptA: 'ONLINE',
-      deptB: 'ONLINE',
-      deptC: 'ONLINE',
-    });
+    let mounted = true;
+
+    const checkHealth = async () => {
+      const services = {
+        gateway: 3000,
+        identity: 3020,
+        mdm: 3030,
+        consent: 3040,
+        workflow: 3060,
+        bus: 3050,
+        audit: 3070,
+        adapterA: 3011,
+        adapterB: 3012,
+        adapterC: 3013,
+        deptA: 3001,
+        deptB: 3002,
+        deptC: 3003
+      };
+
+      const newHealth = {
+        citizen: 'ONLINE',
+        official: 'ONLINE',
+      };
+
+      for (const [key, port] of Object.entries(services)) {
+        try {
+          // Fast timeout for health checks
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+          
+          const res = await fetch(`http://localhost:${port}/health`, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          
+          newHealth[key] = res.ok ? 'ONLINE' : 'OFFLINE';
+        } catch (e) {
+          newHealth[key] = 'OFFLINE';
+        }
+      }
+
+      if (mounted) {
+        setHealth(newHealth);
+      }
+    };
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 5000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

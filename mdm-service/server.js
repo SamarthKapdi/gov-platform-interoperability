@@ -52,40 +52,7 @@ async function main() {
   `);
 
   // Seed data
-  const seedData = () => {
-    const count = db.prepare('SELECT COUNT(*) as count FROM golden_citizens').get().count;
-    if (count === 0) {
-      const insertCitizen = db.prepare(`
-        INSERT INTO golden_citizens (canonical_id, name, date_of_birth, mobile, confidence_score, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-      `);
-      
-      const insertLink = db.prepare(`
-        INSERT INTO department_links (canonical_id, department, department_id, department_id_field, linked_at)
-        VALUES (?, ?, ?, ?, datetime('now'))
-      `);
-
-      db.transaction(() => {
-        // Citizen 1
-        const id1 = '12345678-1234-1234-1234-123456789012';
-        insertCitizen.run(id1, 'Rajesh Kumar Sharma', '1990-05-15', '9876543210', 1.0);
-        insertLink.run(id1, 'DEPT_A', 'SKB-1001', 'citizen_uid');
-        insertLink.run(id1, 'DEPT_B', 'EMP-2001', 'applicant_id');
-        insertLink.run(id1, 'DEPT_C', 'GRV-3001', 'beneficiary_code');
-
-        // Citizen 2
-        const id2 = uuidv4();
-        insertCitizen.run(id2, 'Priya Deepak Patil', '1995-08-22', '8765432109', 1.0);
-        insertLink.run(id2, 'DEPT_A', 'SKB-1002', 'citizen_uid');
-        insertLink.run(id2, 'DEPT_B', 'EMP-2002', 'applicant_id');
-        insertLink.run(id2, 'DEPT_C', 'GRV-3002', 'beneficiary_code');
-      })();
-      console.log('Seed data inserted');
-    }
-  };
-
-  seedData();
-
+  
   app.use((req, res, next) => {
     req.db = db;
     next();

@@ -4,7 +4,12 @@ const router = express.Router();
 // POST /exceptions
 router.post('/', (req, res, next) => {
   try {
-    const { source, entityType, entityId, errorType, errorMessage, rawData } = req.body;
+    const source = req.body.source || req.body.service || 'unknown';
+    const entityType = req.body.entityType || req.body.entity_type || 'unknown';
+    const entityId = req.body.entityId || req.body.entity_id || 'unknown';
+    const errorType = req.body.errorType || req.body.type || 'unknown';
+    const errorMessage = req.body.errorMessage || req.body.message || 'unknown';
+    const rawData = req.body.rawData || req.body.raw_data;
     const stmt = req.db.prepare(`
       INSERT INTO exceptions (source, entity_type, entity_id, error_type, error_message, raw_data, status, created_at)
       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
@@ -19,6 +24,7 @@ router.post('/', (req, res, next) => {
     );
     res.status(201).json({ success: true, id: result.lastInsertRowid });
   } catch (err) {
+    console.error('Failed exception insert:', err);
     next(err);
   }
 });
@@ -40,7 +46,7 @@ router.get('/', (req, res, next) => {
     }
     
     query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit, 10), parseInt(offset, 10));
+    params.push(limit, offset);
     
     const exceptions = req.db.prepare(query).all(...params);
     res.json(exceptions);
@@ -52,45 +58,38 @@ router.get('/', (req, res, next) => {
 // PATCH /exceptions/:id
 router.patch('/:id', (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { status, resolution_notes } = req.body;
-    
-    if (!['RESOLVED', 'RETRY', 'IGNORED'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
-    }
-    
-    const row = req.db.prepare('SELECT * FROM exceptions WHERE id = ?').get(id);
-    console.log('Exception row before update:', row);
+    const { status } = req.body;
     
     const stmt = req.db.prepare(`
       UPDATE exceptions 
-      SET status = ?
+      SET status = ?, retry_count = retry_count + 1
       WHERE id = ?
     `);
     
-    const result = stmt.run(status, id);
-    console.log('Update result:', result);
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Exception not found' });
+    const result = stmt.run(status, req.params.id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    
+    
+    if (status === 'RETRY') {
+      const exc = req.db.prepare('SELECT * FROM exceptions WHERE id = ?').get(req.params.id);
+      if (exc && exc.raw_data) {
+        try {
+          const data = JSON.parse(exc.raw_data);
+          if (data.url && data.payload) {
+            fetch(data.url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data.payload)
+            }).catch(e => console.error('Failed to retry webhook:', e));
+          }
+        } catch (err) {
+          console.error('Failed to parse raw_data for retry', err);
+        }
+      }
     }
+
     
     res.json({ success: true });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// GET /exceptions/stats
-router.get('/stats', (req, res, next) => {
-  try {
-    const db = req.db;
-    const byStatus = db.prepare('SELECT status, count(*) as count FROM exceptions GROUP BY status').all();
-    const bySource = db.prepare('SELECT source, count(*) as count FROM exceptions GROUP BY source').all();
-    
-    res.json({
-      byStatus,
-      bySource
-    });
   } catch (err) {
     next(err);
   }

@@ -22,4 +22,17 @@ router.get('/:citizen_uid', (req, res) => {
   }
 });
 
+
+router.post('/', (req, res) => {
+  try {
+    const { citizen_uid, name, dob, mobile, email, address } = req.body;
+    const now = new Date().toISOString();
+    const stmt = req.db.prepare('INSERT INTO citizens (citizen_uid, name, dob, mobile, email, address, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    stmt.run(citizen_uid, name, dob, mobile, email, address, now);
+    res.status(201).json({ success: true, citizen_uid });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

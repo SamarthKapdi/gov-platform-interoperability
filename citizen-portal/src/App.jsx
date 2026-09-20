@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Tracker from './pages/Tracker';
 import Consent from './pages/Consent';
 import GoldenRecord from './pages/GoldenRecord';
@@ -29,6 +30,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/tracker" element={<ProtectedRoute><Tracker /></ProtectedRoute>} />
           <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
           <Route path="/record" element={<ProtectedRoute><GoldenRecord /></ProtectedRoute>} />

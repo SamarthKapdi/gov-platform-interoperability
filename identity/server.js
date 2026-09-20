@@ -45,37 +45,7 @@ async function main() {
     )
   `);
 
-  // Seed users if empty
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  if (userCount === 0) {
-    console.log('Seeding initial users...');
-    const insertUser = db.prepare(`
-      INSERT INTO users (id, username, password_hash, name, email, mobile, role, department, is_active, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
-    `);
-
-    const seedUsers = [
-      { username: 'citizen_demo', password: 'password123', name: 'Rajesh Kumar Sharma', role: 'citizen', mobile: '9876543210' },
-      { username: 'official_a', password: 'password123', name: 'Officer Dept A', role: 'dept_official', department: 'DEPT_A' },
-      { username: 'official_b', password: 'password123', name: 'Officer Dept B', role: 'dept_official', department: 'DEPT_B' },
-      { username: 'official_c', password: 'password123', name: 'Officer Dept C', role: 'dept_official', department: 'DEPT_C' },
-      { username: 'admin', password: 'admin123', name: 'System Admin', role: 'admin' }
-    ];
-
-    const now = new Date().toISOString();
-    db.transaction(() => {
-      for (const u of seedUsers) {
-        const hash = bcrypt.hashSync(u.password, 10);
-        let id = uuidv4();
-        if (u.username === 'citizen_demo') {
-          id = '12345678-1234-1234-1234-123456789012';
-        }
-        insertUser.run(id, u.username, hash, u.name, null, u.mobile || null, u.role, u.department || null, now);
-      }
-    })();
-    console.log('Initial users seeded.');
-  }
-
+  
   // Health check
   app.get('/health', (req, res) => {
     res.json({ status: 'UP', service: 'identity-service' });

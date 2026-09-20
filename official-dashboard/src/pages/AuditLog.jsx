@@ -46,7 +46,7 @@ const AuditLog = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center animate-pulse text-slate-500">Loading immutable ledger...</div>
+          <div className="p-12 text-center animate-pulse text-slate-500">Loading audit ledger...</div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center text-slate-500">No audit events found.</div>
         ) : (

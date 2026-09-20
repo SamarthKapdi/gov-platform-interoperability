@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
-  const [username, setUsername] = useState('citizen_demo');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -94,7 +94,6 @@ export default function Login() {
                   type="text"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 sm:text-sm bg-slate-50 transition-colors"
-                  placeholder="e.g. citizen1"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
@@ -107,7 +106,6 @@ export default function Login() {
                   type="password"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 sm:text-sm bg-slate-50 transition-colors"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -123,18 +121,11 @@ export default function Login() {
                 {loading ? 'Authenticating...' : 'Secure Sign In'}
               </button>
             </div>
-            <div className="mt-6 border-t border-slate-100 pt-6">
-              <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
-                <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Demo Mode Credentials</h4>
-                <div className="flex justify-between text-sm text-blue-800 font-mono">
-                  <span>citizen1</span>
-                  <span>password123</span>
-                </div>
-                <div className="flex justify-between text-sm text-blue-800 font-mono mt-1">
-                  <span>citizen2</span>
-                  <span>password123</span>
-                </div>
-              </div>
+            
+            <div className="text-center mt-4 pt-4 border-t border-slate-100">
+              <Link to="/register" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                Don't have an account? Register here
+              </Link>
             </div>
           </form>
         </div>

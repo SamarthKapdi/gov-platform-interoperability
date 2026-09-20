@@ -149,15 +149,13 @@ class StatementWrapper {
         lastInsertRowid = res[0].values[0][0];
       }
     } catch(e) {
-      console.error('[DB] Error in run:', e.message);
+      // Silently throw error up to caller instead of logging it here to prevent log spam
+      throw e;
     } finally {
       stmt.free();
     }
     
     this._dbWrapper._save();
-    console.log(`[DB] run: ${this._sql}`);
-    console.log(`[DB] params: ${JSON.stringify(flatParams)}`);
-    console.log(`[DB] changes: ${changes}`);
 
     return { changes, lastInsertRowid };
   }

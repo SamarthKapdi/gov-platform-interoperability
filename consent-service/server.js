@@ -55,44 +55,7 @@ async function main() {
     `);
 
     // Seed data
-    const count = db.prepare('SELECT COUNT(*) as count FROM consent_grants').get().count;
-    if (count === 0) {
-        console.log('Seeding initial consent data...');
-        const insertStmt = db.prepare(`
-            INSERT INTO consent_grants 
-            (id, citizen_id, granting_dept, requesting_dept, data_scope, status, purpose, granted_at, expires_at, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        const now = new Date();
-        const expires = new Date();
-        expires.setFullYear(expires.getFullYear() + 1);
-
-        insertStmt.run(
-            'c-demo-1',
-            'CAN-0001',
-            'DEPT_A',
-            'DEPT_C',
-            'applications',
-            'ACTIVE',
-            'Demo purpose 1: Rajesh grants DEPT_C to read data from DEPT_A',
-            now.toISOString(),
-            expires.toISOString(),
-            'SYSTEM'
-        );
-        insertStmt.run(
-            'c-demo-2',
-            'CAN-0002',
-            'DEPT_C',
-            'DEPT_A',
-            'profile',
-            'ACTIVE',
-            'Demo purpose 2: Priya grants DEPT_A to read from DEPT_C',
-            now.toISOString(),
-            expires.toISOString(),
-            'SYSTEM'
-        );
-    }
-
+    
     // Pass db to routes
     app.use((req, res, next) => {
         req.db = db;

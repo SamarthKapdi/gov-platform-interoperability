@@ -40,17 +40,49 @@ const Interoperability = () => {
     setExpanded(dept);
     if (!data[dept]) {
       try {
-        let port = dept === 'A' ? 3011 : dept === 'B' ? 3012 : 3013;
-        // In case direct adapter port fails, fallback to hardcoded mock visual
-        const res = await fetch(`http://localhost:${port}/api/normalized`);
-        if (res.ok) {
-          const json = await res.json();
-          setData(prev => ({ ...prev, [dept]: json }));
+        let rawPort, normPort, rawPath, normPath;
+        if (dept === 'A') {
+          rawPort = 3001; normPort = 3011; rawPath = '/registry/citizens'; normPath = '/citizens';
+        } else if (dept === 'B') {
+          rawPort = 3002; normPort = 3012; rawPath = '/registry/applicants'; normPath = '/citizens';
+        } else {
+          rawPort = 3003; normPort = 3013; rawPath = '/registry/beneficiaries'; normPath = '/citizens';
         }
+
+        const [rawRes, normRes] = await Promise.all([
+          fetch(`http://localhost:${rawPort}${rawPath}`),
+          fetch(`http://localhost:${normPort}${normPath}`)
+        ]);
+
+        if (!rawRes.ok || !normRes.ok) throw new Error('Failed to fetch from department or adapter');
+
+        const rawText = await rawRes.text();
+        const normJson = await normRes.json();
+
+        // Just take the first record to keep the UI clean
+        let rawDisplay = rawText;
+        if (rawText.startsWith('[')) {
+          const arr = JSON.parse(rawText);
+          rawDisplay = JSON.stringify(arr[0], null, 2);
+        } else if (rawText.includes('<Applicant>')) {
+          rawDisplay = rawText.substring(0, rawText.indexOf('</Applicant>') + 12) + '\n...';
+        }
+
+        setData(prev => ({ 
+          ...prev, 
+          [dept]: { 
+            raw: rawDisplay, 
+            normalized: normJson[0] 
+          } 
+        }));
       } catch (e) {
-        // Mock fallback if adapter not running
-        const mockRaw = dept === 'A' ? '{"first_name":"John", "last_name":"Doe"}' : dept === 'B' ? '<user><name>John Doe</name></user>' : 'JOHN|DOE|1234';
-        setData(prev => ({ ...prev, [dept]: { raw: mockRaw, normalized: { firstName: 'John', lastName: 'Doe' } } }));
+        setData(prev => ({ 
+          ...prev, 
+          [dept]: { 
+            raw: `ERROR: ${e.message}. Department may be down.`, 
+            normalized: { error: 'Adapter failed to process data' } 
+          } 
+        }));
       }
     }
   };

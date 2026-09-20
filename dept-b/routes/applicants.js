@@ -45,5 +45,18 @@ module.exports = (db) => {
     }
   });
 
+  
+  router.post('/', (req, res) => {
+    try {
+      const { ApplicantID, FullName, DOB, Phone, Email, Address } = req.body;
+      const now = new Date().toISOString();
+      const stmt = db.prepare('INSERT INTO applicants (applicant_id, full_name, dob, phone, email, address, registered_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+      stmt.run(ApplicantID, FullName, DOB, Phone, Email, Address, now);
+      res.status(201).type('application/xml').send('<Success>True</Success>');
+    } catch (error) {
+      res.status(500).type('application/xml').send('<Error><Message>' + error.message + '</Message></Error>');
+    }
+  });
+
   return router;
 };

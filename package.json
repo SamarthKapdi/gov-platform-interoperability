@@ -1,7 +1,7 @@
 {
   "name": "sih-26129-interoperability-platform",
   "version": "1.0.0",
-  "description": "Government Interoperability & Federated Service Delivery Platform — SIH 2026 PS 26129",
+  "description": "Government Interoperability & Federated Service Delivery Platform \u00e2\u20ac\u201d SIH 2026 PS 26129",
   "private": true,
   "workspaces": [
     "shared",
@@ -28,7 +28,12 @@
     "start:services": "concurrently \"npm start -w identity\" \"npm start -w gateway\" \"npm start -w consent-service\" \"npm start -w event-bus\" \"npm start -w mdm-service\" \"npm start -w workflow\" \"npm start -w audit-service\"",
     "start:frontend": "concurrently \"npm run dev -w citizen-portal\" \"npm run dev -w official-dashboard\"",
     "start:all": "concurrently \"npm run start:deps\" \"npm run start:adapters\" \"npm run start:services\" \"npm run start:frontend\"",
-    "test:all": "node scripts/test-all.js"
+    "test:all": "node scripts/test-all.js",
+    "seed:test": "node seed/seed-all.js",
+    "reset:empty": "node scripts/reset-empty.js",
+    "pre-demo": "npm run seed:test && npm run test:all && echo \"\n========================================\n  [SUCCESS] SYSTEM IS READY FOR DEMO\n========================================\n\"",
+    "provision:admin": "node scripts/provision-admin.js",
+    "test:real-product": "node scripts/real-product-e2e.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
