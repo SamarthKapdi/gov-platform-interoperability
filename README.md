@@ -164,28 +164,28 @@ MAHA-SETU is designed and verified as a genuine database-backed prototype:
 ## Repository Structure
 
 ```text
-├── apps/
-│   ├── citizen-portal/          # Citizen application & consent management interface (React / Vite)
-│   └── official-dashboard/      # Department official review, MDM 360, & monitoring (React / Vite)
+├── frontend/
+│   ├── citizen/                 # Citizen application & consent management interface (React / Vite)
+│   └── official/                # Department official review, MDM 360, & monitoring (React / Vite)
 │
-├── services/
+├── backend/
 │   ├── gateway/                 # Unified reverse proxy, rate limiting, and RBAC enforcement (:3000)
 │   ├── identity/                # Citizen & official authentication, password hashing, JWTs (:3020)
 │   ├── mdm/                     # Master Data Management & Golden Record resolution (:3030)
 │   ├── consent/                 # DEPA-compliant citizen consent management (:3040)
 │   ├── workflow/                # Multi-stage cross-department workflow state machine (:3060)
 │   ├── event-bus/               # Event dispatching, webhooks, and dead-letter handling (:3050)
-│   └── audit/                   # Centralized audit logging and exception tracking (:3070)
-│
-├── departments/
-│   ├── dept-a/                  # Simulated Department A: Urban Development / Municipal (:3001)
-│   ├── dept-b/                  # Simulated Department B: Revenue & Land Registry - XML (:3002)
-│   └── dept-c/                  # Simulated Department C: Social Welfare - Custom Schema (:3003)
-│
-├── adapters/
-│   ├── dept-a/                  # Department A JSON connector adapter (:3011)
-│   ├── dept-b/                  # Department B XML-to-JSON transformer adapter (:3012)
-│   └── dept-c/                  # Department C custom schema normalizer adapter (:3013)
+│   ├── audit/                   # Centralized audit logging and exception tracking (:3070)
+│   │
+│   ├── adapters/
+│   │   ├── dept-a/              # Department A JSON connector adapter (:3011)
+│   │   ├── dept-b/              # Department B XML-to-JSON transformer adapter (:3012)
+│   │   └── dept-c/              # Department C custom schema normalizer adapter (:3013)
+│   │
+│   └── departments/
+│       ├── dept-a/              # Simulated Department A: Urban Development / Municipal (:3001)
+│       ├── dept-b/              # Simulated Department B: Revenue & Land Registry - XML (:3002)
+│       └── dept-c/              # Simulated Department C: Social Welfare - Custom Schema (:3003)
 │
 ├── shared/                      # Common database wrapper, auth middleware, and validation utilities
 ├── schemas/                     # IndEA-aligned canonical JSON schemas (Citizen, Application, Grievance)

@@ -19,7 +19,7 @@ services:
 
   # ─── Mock Department Services ──────────────────────────────
   dept-a:
-    build: ./departments/dept-a
+    build: ./backend/departments/dept-a
     container_name: sih-dept-a
     ports:
       - "3001:3001"
@@ -33,7 +33,7 @@ services:
       retries: 3
 
   dept-b:
-    build: ./departments/dept-b
+    build: ./backend/departments/dept-b
     container_name: sih-dept-b
     ports:
       - "3002:3002"
@@ -47,7 +47,7 @@ services:
       retries: 3
 
   dept-c:
-    build: ./departments/dept-c
+    build: ./backend/departments/dept-c
     container_name: sih-dept-c
     ports:
       - "3003:3003"
@@ -62,7 +62,7 @@ services:
 
   # ─── Adapter / Connector Layer ─────────────────────────────
   adapter-a:
-    build: ./adapters/dept-a
+    build: ./backend/adapters/dept-a
     container_name: sih-adapter-a
     ports:
       - "3011:3011"
@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
 
   adapter-b:
-    build: ./adapters/dept-b
+    build: ./backend/adapters/dept-b
     container_name: sih-adapter-b
     ports:
       - "3012:3012"
@@ -86,7 +86,7 @@ services:
     restart: unless-stopped
 
   adapter-c:
-    build: ./adapters/dept-c
+    build: ./backend/adapters/dept-c
     container_name: sih-adapter-c
     ports:
       - "3013:3013"
@@ -99,7 +99,7 @@ services:
 
   # ─── Core Platform Services ────────────────────────────────
   identity:
-    build: ./services/identity
+    build: ./backend/identity
     container_name: sih-identity
     ports:
       - "3020:3020"
@@ -108,7 +108,7 @@ services:
     restart: unless-stopped
 
   mdm-service:
-    build: ./services/mdm
+    build: ./backend/mdm
     container_name: sih-mdm
     ports:
       - "3030:3030"
@@ -128,7 +128,7 @@ services:
     restart: unless-stopped
 
   consent-service:
-    build: ./services/consent
+    build: ./backend/consent
     container_name: sih-consent
     ports:
       - "3040:3040"
@@ -141,7 +141,7 @@ services:
     restart: unless-stopped
 
   event-bus:
-    build: ./services/event-bus
+    build: ./backend/event-bus
     container_name: sih-event-bus
     ports:
       - "3050:3050"
@@ -155,7 +155,7 @@ services:
     restart: unless-stopped
 
   workflow:
-    build: ./services/workflow
+    build: ./backend/workflow
     container_name: sih-workflow
     ports:
       - "3060:3060"
@@ -172,7 +172,7 @@ services:
     restart: unless-stopped
 
   audit-service:
-    build: ./services/audit
+    build: ./backend/audit
     container_name: sih-audit
     ports:
       - "3070:3070"
@@ -182,7 +182,7 @@ services:
 
   # ─── API Gateway ───────────────────────────────────────────
   gateway:
-    build: ./services/gateway
+    build: ./backend/gateway
     container_name: sih-gateway
     ports:
       - "3000:3000"
@@ -210,7 +210,7 @@ services:
 
   # ─── Frontend Applications ─────────────────────────────────
   citizen-portal:
-    build: ./apps/citizen-portal
+    build: ./frontend/citizen
     container_name: sih-citizen-portal
     ports:
       - "5173:5173"
@@ -219,7 +219,7 @@ services:
     restart: unless-stopped
 
   official-dashboard:
-    build: ./apps/official-dashboard
+    build: ./frontend/official
     container_name: sih-official-dashboard
     ports:
       - "5174:5174"

@@ -65,16 +65,16 @@ async function bootstrapTestEnvironment(resetDB = true) {
 
     console.log('[BOOTSTRAP] Starting services...');
     const services = [
-        ['services/gateway/server.js', 3000],
-        ['departments/dept-a/server.js', 3001],
-        ['departments/dept-b/server.js', 3002],
-        ['departments/dept-c/server.js', 3003],
-        ['services/identity/server.js', 3010],
-        ['services/mdm/server.js', 3030],
-        ['services/consent/server.js', 3040],
-        ['services/event-bus/server.js', 3050],
-        ['services/workflow/server.js', 3060],
-        ['services/audit/server.js', 3070],
+        ['backend/gateway/server.js', 3000],
+        ['backend/departments/dept-a/server.js', 3001],
+        ['backend/departments/dept-b/server.js', 3002],
+        ['backend/departments/dept-c/server.js', 3003],
+        ['backend/identity/server.js', 3010],
+        ['backend/mdm/server.js', 3030],
+        ['backend/consent/server.js', 3040],
+        ['backend/event-bus/server.js', 3050],
+        ['backend/workflow/server.js', 3060],
+        ['backend/audit/server.js', 3070],
     ];
 
     for (const [file, port] of services) {

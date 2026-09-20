@@ -4,7 +4,7 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 1. Identity Service (`identity.db`)
 - **Service**: `identity-service`
-- **Path**: `services/identity/data/identity.db`
+- **Path**: `backend/identity/data/identity.db`
 - **Table: `users`**
   - **Purpose**: Core IAM and Authentication storage.
   - **Columns**:
@@ -21,7 +21,7 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 2. MDM Service (`mdm.db`)
 - **Service**: `mdm-service`
-- **Path**: `services/mdm/data/mdm.db`
+- **Path**: `backend/mdm/data/mdm.db`
 - **Table: `golden_citizens`**
   - **Purpose**: The canonical unified profile for citizens.
   - **Columns**:
@@ -46,7 +46,7 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 3. Consent Service (`consent.db`)
 - **Service**: `consent-service`
-- **Path**: `services/consent/data/consent.db`
+- **Path**: `backend/consent/data/consent.db`
 - **Table: `consent_grants`**
   - **Purpose**: DEPA-compliant cryptographic consent ledger.
   - **Columns**:
@@ -72,7 +72,7 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 4. Workflow Service (`workflow.db`)
 - **Service**: `workflow-service`
-- **Path**: `services/workflow/data/workflow.db`
+- **Path**: `backend/workflow/data/workflow.db`
 - **Table: `workflow_instances`**
   - **Purpose**: Tracks application state machines.
   - **Columns**:
@@ -97,7 +97,7 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 5. Event Bus (`events.db`)
 - **Service**: `event-bus`
-- **Path**: `services/event-bus/data/events.db`
+- **Path**: `backend/event-bus/data/events.db`
 - **Table: `notifications`**
   - **Purpose**: Tracks alerts triggered by events.
   - **Columns**:
@@ -120,7 +120,7 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 6. Audit & Exceptions Service (`audit.db`)
 - **Service**: `audit-service`
-- **Path**: `services/audit/data/audit.db`
+- **Path**: `backend/audit/data/audit.db`
 - **Table: `audit_log`**
   - **Purpose**: Security auditing and system action verification.
   - **Columns**:
@@ -151,6 +151,6 @@ This document outlines the precise database schemas for every SQLite file in the
 
 ### 7. Department Simulators (Source Systems)
 These databases prove the adapters can pull from isolated schemas safely.
-- **`departments/dept-a/data/dept-a.db`**: Table `citizens` and `applications`. Fields: `citizen_uid`, `name`, `course_id`.
-- **`departments/dept-b/data/dept-b.db`**: Table `applicants` and `job_applications`. Fields: `applicant_id`, `full_name`. (Returned natively as XML before adapter conversion).
-- **`departments/dept-c/data/dept-c.db`**: Table `beneficiaries` and `complaints`. Fields: `beneficiary_code`, `applicant_name`.
+- **`backend/departments/dept-a/data/dept-a.db`**: Table `citizens` and `applications`. Fields: `citizen_uid`, `name`, `course_id`.
+- **`backend/departments/dept-b/data/dept-b.db`**: Table `applicants` and `job_applications`. Fields: `applicant_id`, `full_name`. (Returned natively as XML before adapter conversion).
+- **`backend/departments/dept-c/data/dept-c.db`**: Table `beneficiaries` and `complaints`. Fields: `beneficiary_code`, `applicant_name`.

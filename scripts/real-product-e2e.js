@@ -67,19 +67,19 @@ async function run() {
 
         // Start all services manually to control them
         console.log('Starting services...');
-        await startService('identity', 'server.js', 'services/identity', '3020');
-        await startService('dept-a', 'server.js', 'departments/dept-a', '3001');
-        await startService('dept-b', 'server.js', 'departments/dept-b', '3002');
-        await startService('dept-c', 'server.js', 'departments/dept-c', '3003');
-        await startService('adapter-a', 'server.js', 'adapters/dept-a', '3011');
-        await startService('adapter-b', 'server.js', 'adapters/dept-b', '3012');
-        await startService('adapter-c', 'server.js', 'adapters/dept-c', '3013');
-        await startService('mdm', 'server.js', 'services/mdm', '3030');
-        await startService('consent', 'server.js', 'services/consent', '3040');
-        await startService('event-bus', 'server.js', 'services/event-bus', '3050');
-        await startService('workflow', 'server.js', 'services/workflow', '3060');
-        await startService('audit', 'server.js', 'services/audit', '3070');
-        await startService('gateway', 'server.js', 'services/gateway', '3000');
+        await startService('identity', 'server.js', 'backend/identity', '3020');
+        await startService('dept-a', 'server.js', 'backend/departments/dept-a', '3001');
+        await startService('dept-b', 'server.js', 'backend/departments/dept-b', '3002');
+        await startService('dept-c', 'server.js', 'backend/departments/dept-c', '3003');
+        await startService('adapter-a', 'server.js', 'backend/adapters/dept-a', '3011');
+        await startService('adapter-b', 'server.js', 'backend/adapters/dept-b', '3012');
+        await startService('adapter-c', 'server.js', 'backend/adapters/dept-c', '3013');
+        await startService('mdm', 'server.js', 'backend/mdm', '3030');
+        await startService('consent', 'server.js', 'backend/consent', '3040');
+        await startService('event-bus', 'server.js', 'backend/event-bus', '3050');
+        await startService('workflow', 'server.js', 'backend/workflow', '3060');
+        await startService('audit', 'server.js', 'backend/audit', '3070');
+        await startService('gateway', 'server.js', 'backend/gateway', '3000');
         await checkGateway();
         
         // 3. Register unique citizen
@@ -218,19 +218,19 @@ async function run() {
         killAll();
         await delay(2000); // let ports free up
         
-        await startService('identity', 'server.js', 'services/identity', '3020');
-        await startService('dept-a', 'server.js', 'departments/dept-a', '3001');
-        await startService('dept-b', 'server.js', 'departments/dept-b', '3002');
-        await startService('dept-c', 'server.js', 'departments/dept-c', '3003');
-        await startService('adapter-a', 'server.js', 'adapters/dept-a', '3011');
-        await startService('adapter-b', 'server.js', 'adapters/dept-b', '3012');
-        await startService('adapter-c', 'server.js', 'adapters/dept-c', '3013');
-        await startService('mdm', 'server.js', 'services/mdm', '3030');
-        await startService('consent', 'server.js', 'services/consent', '3040');
-        await startService('event-bus', 'server.js', 'services/event-bus', '3050');
-        await startService('workflow', 'server.js', 'services/workflow', '3060');
-        await startService('audit', 'server.js', 'services/audit', '3070');
-        await startService('gateway', 'server.js', 'services/gateway', '3000');
+        await startService('identity', 'server.js', 'backend/identity', '3020');
+        await startService('dept-a', 'server.js', 'backend/departments/dept-a', '3001');
+        await startService('dept-b', 'server.js', 'backend/departments/dept-b', '3002');
+        await startService('dept-c', 'server.js', 'backend/departments/dept-c', '3003');
+        await startService('adapter-a', 'server.js', 'backend/adapters/dept-a', '3011');
+        await startService('adapter-b', 'server.js', 'backend/adapters/dept-b', '3012');
+        await startService('adapter-c', 'server.js', 'backend/adapters/dept-c', '3013');
+        await startService('mdm', 'server.js', 'backend/mdm', '3030');
+        await startService('consent', 'server.js', 'backend/consent', '3040');
+        await startService('event-bus', 'server.js', 'backend/event-bus', '3050');
+        await startService('workflow', 'server.js', 'backend/workflow', '3060');
+        await startService('audit', 'server.js', 'backend/audit', '3070');
+        await startService('gateway', 'server.js', 'backend/gateway', '3000');
         await checkGateway();
 
         // 15. Verify ALL data
@@ -300,7 +300,7 @@ async function run() {
         const excId = excs[0].id;
         
         // Restore Dept B
-        await startService('dept-b', 'server.js', 'departments/dept-b', '3002');
+        await startService('dept-b', 'server.js', 'backend/departments/dept-b', '3002');
         console.log('[PASS] Retry');
         
         // 20. Force Retry

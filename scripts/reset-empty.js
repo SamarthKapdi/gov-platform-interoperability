@@ -2,15 +2,15 @@ const fs = require('fs');
 const path = require('path');
 
 const DB_FILES = [
-  'departments/dept-a/data/dept-a.db',
-  'departments/dept-b/data/dept-b.db',
-  'departments/dept-c/data/dept-c.db',
-  'services/identity/data/identity.db',
-  'services/mdm/data/mdm.db',
-  'services/consent/data/consent.db',
-  'services/event-bus/data/events.db',
-  'services/workflow/data/workflow.db',
-  'services/audit/data/audit.db',
+  'backend/departments/dept-a/data/dept-a.db',
+  'backend/departments/dept-b/data/dept-b.db',
+  'backend/departments/dept-c/data/dept-c.db',
+  'backend/identity/data/identity.db',
+  'backend/mdm/data/mdm.db',
+  'backend/consent/data/consent.db',
+  'backend/event-bus/data/events.db',
+  'backend/workflow/data/workflow.db',
+  'backend/audit/data/audit.db',
 ];
 
 const ROOT = path.resolve(__dirname, '..');
