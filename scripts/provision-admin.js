@@ -12,7 +12,7 @@ async function provision() {
 
     await initializeDb();
     
-    const dbPath = path.join(__dirname, '../identity/data/identity.db');
+    const dbPath = path.join(__dirname, '../services/identity/data/identity.db');
     
     // Ensure dir exists
     const dir = path.dirname(dbPath);
