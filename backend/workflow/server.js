@@ -7,7 +7,7 @@ const { initializeDb, createDb, initAuditTable, initExceptionsTable } = require(
 const workflowRoutes = require('./routes/workflow');
 
 const app = express();
-const port = 3060;
+const PORT = process.env.PORT || 3060;
 
 app.use(cors());
 app.use(express.json());
@@ -58,8 +58,8 @@ async function main() {
   const { authMiddleware } = require('@sih/shared/auth');
   app.use('/', authMiddleware({ optional: true }), workflowRoutes);
 
-  app.listen(port, () => {
-    console.log(`Workflow Orchestration Service running on port ${port}`);
+  app.listen(PORT, () => {
+    console.log(`Workflow Orchestration Service running on port `);
   });
 }
 

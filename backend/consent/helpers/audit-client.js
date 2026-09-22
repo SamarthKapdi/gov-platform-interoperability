@@ -5,8 +5,7 @@ async function sendAuditLog(entry) {
         const data = JSON.stringify(entry);
 
         const options = {
-            hostname: 'localhost',
-            port: 3070,
+            hostname: new URL(process.env.AUDIT_URL || \'http://localhost:3070\').hostname, port: new URL(process.env.AUDIT_URL || \'http://localhost:3070\').port,
             path: '/log',
             method: 'POST',
             headers: {

@@ -14,7 +14,7 @@ const STATES = [
 
 const publishEvent = async (event) => {
   try {
-    await fetch('http://127.0.0.1:3050/events/publish', {
+    await fetch(`${process.env.EVENT_BUS_URL || 'http://localhost:3050'}/events/publish`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event)
@@ -36,7 +36,7 @@ const logAudit = async (req, db, action, entityId, before, after, result) => {
 
   // Send to central audit service
   try {
-    await fetch('http://127.0.0.1:3070/log', {
+    await fetch(`${process.env.AUDIT_URL || 'http://localhost:3070'}/log`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -129,7 +129,7 @@ router.post('/instances/:id/advance', async (req, res) => {
       // We simulate checking consent via the Gateway
       // The API gateway will return 403 or strip data if consent is missing.
       // But here we directly ask the Consent service for this demo's precision.
-      const consentRes = await fetch(`http://127.0.0.1:3040/citizen/${instance.citizen_id}`, {
+      const consentRes = await fetch(`${process.env.CONSENT_URL || 'http://localhost:3040'}/citizen/${instance.citizen_id}`, {
         headers: { 'Authorization': req.headers.authorization }
       });
       const consents = await consentRes.json();

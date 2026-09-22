@@ -42,7 +42,7 @@ class Publisher {
     });
 
     this.redisPublisher.on('connect', () => {
-      console.log('Redis connected successfully.');
+      console.log('[Event Bus] Transport: Redis ACTIVE');
       this.useRedis = true;
     });
 
@@ -71,6 +71,9 @@ class Publisher {
   }
 
   publish(channel, payload) {
+    if (!payload.id) payload.id = require('uuid').v4();
+    if (!payload.correlation_id) payload.correlation_id = require('uuid').v4();
+    
     if (this.useRedis && this.redisPublisher.status === 'ready') {
       this.redisPublisher.publish(channel, JSON.stringify(payload));
     } else {

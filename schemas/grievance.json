@@ -4,7 +4,12 @@
   "title": "Grievance",
   "description": "Canonical grievance schema — specialized sub-type of Application for Dept C. Separated for richer domain modeling. Aligned with DIGIT eGov Foundation grievance entity conventions.",
   "type": "object",
-  "required": ["grievanceId", "canonicalCitizenId", "subject", "status"],
+  "required": [
+    "grievanceId",
+    "canonicalCitizenId",
+    "subject",
+    "status"
+  ],
   "properties": {
     "grievanceId": {
       "type": "string",
@@ -33,18 +38,38 @@
       "maxLength": 300
     },
     "description": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Detailed description of the grievance.",
       "maxLength": 5000
     },
     "category": {
-      "type": ["string", "null"],
-      "enum": ["SERVICE_DELAY", "DOCUMENT_ISSUE", "PAYMENT_ISSUE", "STAFF_CONDUCT", "OTHER", null],
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "SERVICE_DELAY",
+        "DOCUMENT_ISSUE",
+        "PAYMENT_ISSUE",
+        "STAFF_CONDUCT",
+        "OTHER",
+        null
+      ],
       "description": "Grievance category."
     },
     "status": {
       "type": "string",
-      "enum": ["FILED", "UNDER_REVIEW", "IN_PROGRESS", "RESOLVED", "CLOSED", "REOPENED"],
+      "enum": [
+        "FILED",
+        "UNDER_REVIEW",
+        "IN_PROGRESS",
+        "RESOLVED",
+        "CLOSED",
+        "REOPENED"
+      ],
       "description": "Current resolution status."
     },
     "filedAt": {
@@ -52,12 +77,19 @@
       "format": "date-time"
     },
     "resolvedAt": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time"
     },
     "updatedAt": {
       "type": "string",
       "format": "date-time"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "default": "v1"
     }
   }
 }

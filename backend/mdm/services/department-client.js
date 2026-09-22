@@ -2,21 +2,21 @@ const { parseXmlToObjects } = require('../helpers/xml-parser');
 
 const DEPARTMENTS = {
   DEPT_A: {
-    adapterUrl: 'http://localhost:3011/normalized/citizens',
-    directUrl: 'http://localhost:3001/citizens',
+    adapterUrl: `${process.env.ADAPTER_A_URL || 'http://localhost:3011'}/normalized/citizens`,
+    directUrl: `${process.env.DEPT_A_URL || 'http://localhost:3001'}/citizens`,
     idField: 'citizen_uid',
     name: 'DEPT_A'
   },
   DEPT_B: {
-    adapterUrl: 'http://localhost:3012/normalized/citizens',
-    directUrl: 'http://localhost:3002/registry/applicants',
+    adapterUrl: `${process.env.ADAPTER_B_URL || 'http://localhost:3012'}/normalized/citizens`,
+    directUrl: `${process.env.DEPT_B_URL || 'http://localhost:3002'}/registry/applicants`,
     idField: 'applicant_id',
     name: 'DEPT_B',
     isXml: true
   },
   DEPT_C: {
-    adapterUrl: 'http://localhost:3013/normalized/citizens',
-    directUrl: 'http://localhost:3003/beneficiaries',
+    adapterUrl: `${process.env.ADAPTER_C_URL || 'http://localhost:3013'}/normalized/citizens`,
+    directUrl: `${process.env.DEPT_C_URL || 'http://localhost:3003'}/beneficiaries`,
     idField: 'beneficiary_code',
     name: 'DEPT_C'
   }
@@ -79,13 +79,13 @@ async function fetchFullProfileData(canonicalId, deptLinks) {
         
         try {
             if (deptKey === 'DEPT_A') {
-                const res = await fetch(`http://localhost:3001/citizens/${deptId}`);
+                const res = await fetch(`${process.env.DEPT_A_URL || 'http://localhost:3001'}/citizens/${deptId}`);
                 if (res.ok) {
                     const data = await res.json();
                     profileData['DEPT_A'] = data;
                 }
             } else if (deptKey === 'DEPT_B') {
-                const res = await fetch(`http://localhost:3002/registry/applicants`);
+                const res = await fetch(`${process.env.DEPT_B_URL || 'http://localhost:3002'}/registry/applicants`);
                 if (res.ok) {
                     const xml = await res.text();
                     const apps = parseXmlToObjects(xml, 'applicant');
@@ -93,7 +93,7 @@ async function fetchFullProfileData(canonicalId, deptLinks) {
                     if (applicant) profileData['DEPT_B'] = applicant;
                 }
             } else if (deptKey === 'DEPT_C') {
-                const res = await fetch(`http://localhost:3003/beneficiaries/${deptId}`);
+                const res = await fetch(`${process.env.DEPT_C_URL || 'http://localhost:3003'}/beneficiaries/${deptId}`);
                 if (res.ok) {
                     const data = await res.json();
                     profileData['DEPT_C'] = data;

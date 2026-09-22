@@ -76,10 +76,10 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const checkDeptHealth = async (id, port) => {
+    const checkDeptHealth = async (id) => {
       const start = Date.now();
       try {
-        const res = await fetch(`http://localhost:${port}/health`);
+        const res = await fetch(`/api/dept${id}/health`);
         if (res.ok) setDeptHealth(prev => ({ ...prev, [id]: { status: 'ONLINE', latency: Date.now() - start } }));
         else throw new Error('Not OK');
       } catch (err) {
@@ -87,14 +87,14 @@ const Dashboard = () => {
       }
     };
     
-    checkDeptHealth('A', 3001);
-    checkDeptHealth('B', 3002);
-    checkDeptHealth('C', 3003);
+    checkDeptHealth('A');
+    checkDeptHealth('B');
+    checkDeptHealth('C');
     
     const interval = setInterval(() => {
-      checkDeptHealth('A', 3001);
-      checkDeptHealth('B', 3002);
-      checkDeptHealth('C', 3003);
+      checkDeptHealth('A');
+      checkDeptHealth('B');
+      checkDeptHealth('C');
     }, 15000);
     return () => clearInterval(interval);
   }, []);

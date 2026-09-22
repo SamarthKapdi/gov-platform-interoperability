@@ -20,8 +20,12 @@ router.get('/', (req, res, next) => {
     res.json({
       todayAuditCount,
       exceptionsByStatus,
+      exceptions: exceptionsByStatus, // Alias for frontend
       consentEventsCount,
-      totalAuditEntries
+      consentEvents: consentEventsCount, // Alias for frontend
+      totalAuditEntries,
+      count: totalAuditEntries, // Alias for frontend workflows count (mocked/fallback)
+      workflows: totalAuditEntries // Alias for frontend workflows count (mocked/fallback)
     });
   } catch (err) {
     next(err);

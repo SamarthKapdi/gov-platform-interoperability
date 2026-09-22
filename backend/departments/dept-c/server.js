@@ -6,7 +6,7 @@ const fs = require('fs');
 const { initializeDb, createDb, initAuditTable, initExceptionsTable } = require('@sih/shared/db');
 const { auditMiddleware } = require('@sih/shared/audit');
 
-const PORT = 3003;
+const PORT = process.env.PORT || 3003;
 const DB_PATH = path.join(__dirname, 'data', 'dept-c.db');
 
 // Ensure data directory exists

@@ -4,7 +4,13 @@
   "title": "Application",
   "description": "Canonical application schema — unified representation of applications/requests across all departments. References IndEA service-request entity pattern.",
   "type": "object",
-  "required": ["applicationId", "canonicalCitizenId", "department", "type", "status"],
+  "required": [
+    "applicationId",
+    "canonicalCitizenId",
+    "department",
+    "type",
+    "status"
+  ],
   "properties": {
     "applicationId": {
       "type": "string",
@@ -16,17 +22,33 @@
     },
     "department": {
       "type": "string",
-      "enum": ["DEPT_A", "DEPT_B", "DEPT_C"],
+      "enum": [
+        "DEPT_A",
+        "DEPT_B",
+        "DEPT_C"
+      ],
       "description": "Originating department."
     },
     "type": {
       "type": "string",
-      "enum": ["SKILL_CERTIFICATION", "JOB_APPLICATION", "GRIEVANCE"],
+      "enum": [
+        "SKILL_CERTIFICATION",
+        "JOB_APPLICATION",
+        "GRIEVANCE"
+      ],
       "description": "Application type — maps to the department's domain."
     },
     "status": {
       "type": "string",
-      "enum": ["SUBMITTED", "UNDER_REVIEW", "VERIFIED", "APPROVED", "REJECTED", "RESOLVED", "CLOSED"],
+      "enum": [
+        "SUBMITTED",
+        "UNDER_REVIEW",
+        "VERIFIED",
+        "APPROVED",
+        "REJECTED",
+        "RESOLVED",
+        "CLOSED"
+      ],
       "description": "Current status in the canonical status taxonomy."
     },
     "departmentRefId": {
@@ -38,12 +60,18 @@
       "description": "The citizen's ID as known to the originating department."
     },
     "title": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Human-readable application title/subject.",
       "maxLength": 300
     },
     "details": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "description": "Department-specific details (free-form JSON)."
     },
     "submittedAt": {
@@ -55,9 +83,16 @@
       "format": "date-time"
     },
     "slaDeadline": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time",
       "description": "SLA deadline for processing."
+    },
+    "schemaVersion": {
+      "type": "string",
+      "default": "v1"
     }
   }
 }

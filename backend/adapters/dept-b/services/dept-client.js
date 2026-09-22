@@ -1,4 +1,4 @@
-const DEPT_B_URL = 'http://localhost:3002';
+const DEPT_B_URL = process.env.DEPT_B_URL || 'http://localhost:3002';
 
 async function fetchApplicants() {
   const res = await fetch(`${DEPT_B_URL}/registry/applicants`);

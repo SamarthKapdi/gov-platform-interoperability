@@ -7,7 +7,7 @@
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
 
-const ajv = new Ajv({ allErrors: true, coerceTypes: false });
+const ajv = new Ajv({ allErrors: true, coerceTypes: false, strict: true });
 addFormats(ajv);
 
 // Load canonical schemas
@@ -68,6 +68,7 @@ function logException(db, exception) {
  */
 const checks = {
   isValidMobile: (val) => /^[6-9][0-9]{9}$/.test(val),
+  isValidAadhaar: (val) => /^[2-9][0-9]{11}$/.test(val),
   isValidDate: (val) => !isNaN(Date.parse(val)),
   isNonEmpty: (val) => val !== null && val !== undefined && String(val).trim().length > 0,
   normalizeDate: (val) => {

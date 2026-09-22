@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000'; // Gateway
+const API_BASE = ''; // Proxy handles /api
 
 export const api = {
   get: async (endpoint) => {
@@ -42,7 +42,7 @@ export const getAuditLogs = () => api.get('/api/audit/logs');
 export const getExceptions = () => api.get('/api/audit/exceptions');
 export const retryException = (id) => {
   const token = localStorage.getItem('token');
-  return fetch(`http://localhost:3000/api/audit/exceptions/${id}`, {
+  return fetch(`${API_BASE}/api/audit/exceptions/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
     body: JSON.stringify({ status: 'RETRY' })
@@ -55,6 +55,6 @@ export const getCitizenRecord = (query, type) => {
   return api.get(`/api/mdm/search?q=${encodeURIComponent(query)}${type ? `&type=${type}` : ''}`);
 };
 export const getMetrics = () => api.get('/api/audit/metrics');
-export const getGatewayHealth = () => fetch('http://localhost:3000/health').then(r => r.json());
+export const getGatewayHealth = () => fetch(`${API_BASE}/health`).then(r => r.json());
 export const getRecentEvents = (limit = 5) => api.get(`/api/events/recent?limit=${limit}`);
 export const getWorkflows = () => api.get('/api/workflow/instances');

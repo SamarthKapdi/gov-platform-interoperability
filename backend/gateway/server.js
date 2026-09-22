@@ -19,8 +19,21 @@ const PORT = process.env.PORT || 3000;
 // 1. CORS
 app.use(cors());
 
+// 1.5 Security Headers & Correlation ID
+const { v4: uuidv4 } = require('uuid');
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  
+  req.id = req.headers['x-request-id'] || uuidv4();
+  res.setHeader('X-Request-ID', req.id);
+  next();
+});
+
 // 2. Morgan request logging
-app.use(morgan('combined'));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms [ReqID: :req[x-request-id]]'));
 
 // 3. Rate limiting
 const limiter = rateLimit({
@@ -68,6 +81,7 @@ routes.forEach(route => {
     changeOrigin: true,
     pathRewrite: route.stripPrefix ? { [`^${route.prefix}`]: '' } : {},
     onProxyReq: (proxyReq, req, res) => {
+      proxyReq.setHeader('x-request-id', req.id);
       if (req.user) {
         proxyReq.setHeader('x-user', JSON.stringify(req.user));
       }

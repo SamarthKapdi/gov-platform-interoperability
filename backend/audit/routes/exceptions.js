@@ -79,7 +79,9 @@ router.patch('/:id', (req, res, next) => {
             // SECURITY CHECK: Only allow retry to known local services (adapters/departments)
             try {
               const parsedUrl = new URL(data.url);
-              if (parsedUrl.hostname !== '127.0.0.1' && parsedUrl.hostname !== 'localhost') {
+              const allowedHosts = (process.env.ALLOWED_RETRY_HOSTS || '').split(',').filter(Boolean);
+              allowedHosts.push('127.0.0.1', 'localhost');
+              if (!allowedHosts.includes(parsedUrl.hostname)) {
                 throw new Error('Forbidden URL');
               }
             } catch (e) {

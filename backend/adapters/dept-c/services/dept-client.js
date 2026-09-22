@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:3003';
+const BASE_URL = process.env.DEPT_C_URL || 'http://localhost:3003';
 
 async function getBeneficiaries() {
   const response = await axios.get(`${BASE_URL}/beneficiaries`);

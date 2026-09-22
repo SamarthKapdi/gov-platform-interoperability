@@ -1,239 +1,602 @@
 version: '3.8'
-
-# SIH 26129 — Government Interoperability & Federated Service Delivery Platform
-# Single docker-compose up brings up the entire prototype stack.
-
 services:
-  # ─── Infrastructure ────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: sih-postgres
+    environment:
+      POSTGRES_USER: sih
+      POSTGRES_PASSWORD: sih2026
+      POSTGRES_DB: mahasetu
+    ports:
+    - 5432:5432
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+    networks:
+    - sih-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U sih -d mahasetu
+      interval: 10s
+      timeout: 5s
+      retries: 5
   redis:
     image: redis:alpine
     container_name: sih-redis
     ports:
-      - "6379:6379"
+    - 6379:6379
+    networks:
+    - sih-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+      - CMD
+      - redis-cli
+      - ping
       interval: 10s
       timeout: 3s
       retries: 3
-
-  # ─── Mock Department Services ──────────────────────────────
   dept-a:
-    build: ./backend/departments/dept-a
+    build:
+      context: .
+      dockerfile: ./backend/departments/dept-a/Dockerfile
     container_name: sih-dept-a
     ports:
-      - "3001:3001"
-    volumes:
-      - dept-a-data:/app/data
+    - 3001:3001
+    networks:
+    - sih-network
     restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3001/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
       interval: 15s
       timeout: 5s
       retries: 3
-
+    volumes:
+    - dept-a-data:/app/data
   dept-b:
-    build: ./backend/departments/dept-b
+    build:
+      context: .
+      dockerfile: ./backend/departments/dept-b/Dockerfile
     container_name: sih-dept-b
     ports:
-      - "3002:3002"
-    volumes:
-      - dept-b-data:/app/data
+    - 3002:3002
+    networks:
+    - sih-network
     restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3002/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3002/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
       interval: 15s
       timeout: 5s
       retries: 3
-
+    volumes:
+    - dept-b-data:/app/data
   dept-c:
-    build: ./backend/departments/dept-c
+    build:
+      context: .
+      dockerfile: ./backend/departments/dept-c/Dockerfile
     container_name: sih-dept-c
     ports:
-      - "3003:3003"
-    volumes:
-      - dept-c-data:/app/data
+    - 3003:3003
+    networks:
+    - sih-network
     restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3003/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3003/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
       interval: 15s
       timeout: 5s
       retries: 3
-
-  # ─── Adapter / Connector Layer ─────────────────────────────
+    volumes:
+    - dept-c-data:/app/data
   adapter-a:
-    build: ./backend/adapters/dept-a
+    build:
+      context: .
+      dockerfile: ./backend/adapters/dept-a/Dockerfile
     container_name: sih-adapter-a
     ports:
-      - "3011:3011"
+    - 3011:3011
+    networks:
+    - sih-network
+    restart: unless-stopped
     environment:
-      - DEPT_A_URL=http://dept-a:3001
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3011/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
     depends_on:
       dept-a:
         condition: service_healthy
-    restart: unless-stopped
-
   adapter-b:
-    build: ./backend/adapters/dept-b
+    build:
+      context: .
+      dockerfile: ./backend/adapters/dept-b/Dockerfile
     container_name: sih-adapter-b
     ports:
-      - "3012:3012"
+    - 3012:3012
+    networks:
+    - sih-network
+    restart: unless-stopped
     environment:
-      - DEPT_B_URL=http://dept-b:3002
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3012/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
     depends_on:
       dept-b:
         condition: service_healthy
-    restart: unless-stopped
-
   adapter-c:
-    build: ./backend/adapters/dept-c
+    build:
+      context: .
+      dockerfile: ./backend/adapters/dept-c/Dockerfile
     container_name: sih-adapter-c
     ports:
-      - "3013:3013"
+    - 3013:3013
+    networks:
+    - sih-network
+    restart: unless-stopped
     environment:
-      - DEPT_C_URL=http://dept-c:3003
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3013/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
     depends_on:
       dept-c:
         condition: service_healthy
-    restart: unless-stopped
-
-  # ─── Core Platform Services ────────────────────────────────
   identity:
-    build: ./backend/identity
+    build:
+      context: .
+      dockerfile: ./backend/identity/Dockerfile
     container_name: sih-identity
     ports:
-      - "3020:3020"
-    volumes:
-      - identity-data:/app/data
+    - 3020:3020
+    networks:
+    - sih-network
     restart: unless-stopped
-
-  mdm-service:
-    build: ./backend/mdm
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3020/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+    - identity-data:/app/data
+  mdm:
+    build:
+      context: .
+      dockerfile: ./backend/mdm/Dockerfile
     container_name: sih-mdm
     ports:
-      - "3030:3030"
-    environment:
-      - DEPT_A_URL=http://dept-a:3001
-      - DEPT_B_URL=http://dept-b:3002
-      - DEPT_C_URL=http://dept-c:3003
-      - ADAPTER_A_URL=http://adapter-a:3011
-      - ADAPTER_B_URL=http://adapter-b:3012
-      - ADAPTER_C_URL=http://adapter-c:3013
-    volumes:
-      - mdm-data:/app/data
-    depends_on:
-      - dept-a
-      - dept-b
-      - dept-c
+    - 3030:3030
+    networks:
+    - sih-network
     restart: unless-stopped
-
-  consent-service:
-    build: ./backend/consent
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3030/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+    - mdm-data:/app/data
+  consent:
+    build:
+      context: .
+      dockerfile: ./backend/consent/Dockerfile
     container_name: sih-consent
     ports:
-      - "3040:3040"
-    environment:
-      - AUDIT_SERVICE_URL=http://audit-service:3070
-    volumes:
-      - consent-data:/app/data
-    depends_on:
-      - audit-service
+    - 3040:3040
+    networks:
+    - sih-network
     restart: unless-stopped
-
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3040/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+    - consent-data:/app/data
   event-bus:
-    build: ./backend/event-bus
+    build:
+      context: .
+      dockerfile: ./backend/event-bus/Dockerfile
     container_name: sih-event-bus
     ports:
-      - "3050:3050"
+    - 3050:3050
+    networks:
+    - sih-network
+    restart: unless-stopped
     environment:
-      - REDIS_URL=redis://redis:6379
-    volumes:
-      - events-data:/app/data
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3050/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
     depends_on:
       redis:
         condition: service_healthy
-    restart: unless-stopped
-
+    volumes:
+    - events-data:/app/data
   workflow:
-    build: ./backend/workflow
+    build:
+      context: .
+      dockerfile: ./backend/workflow/Dockerfile
     container_name: sih-workflow
     ports:
-      - "3060:3060"
-    environment:
-      - DEPT_A_URL=http://dept-a:3001
-      - DEPT_C_URL=http://dept-c:3003
-      - EVENT_BUS_URL=http://event-bus:3050
-    volumes:
-      - workflow-data:/app/data
-    depends_on:
-      - dept-a
-      - dept-c
-      - event-bus
+    - 3060:3060
+    networks:
+    - sih-network
     restart: unless-stopped
-
-  audit-service:
-    build: ./backend/audit
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3060/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      event-bus:
+        condition: service_healthy
+    volumes:
+    - workflow-data:/app/data
+  audit:
+    build:
+      context: .
+      dockerfile: ./backend/audit/Dockerfile
     container_name: sih-audit
     ports:
-      - "3070:3070"
-    volumes:
-      - audit-data:/app/data
+    - 3070:3070
+    networks:
+    - sih-network
     restart: unless-stopped
-
-  # ─── API Gateway ───────────────────────────────────────────
+    environment:
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3070/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+    - audit-data:/app/data
   gateway:
-    build: ./backend/gateway
+    build:
+      context: .
+      dockerfile: ./backend/gateway/Dockerfile
     container_name: sih-gateway
     ports:
-      - "3000:3000"
+    - 3000:3000
+    networks:
+    - sih-network
+    restart: unless-stopped
     environment:
-      - ADAPTER_A_URL=http://adapter-a:3011
-      - ADAPTER_B_URL=http://adapter-b:3012
-      - ADAPTER_C_URL=http://adapter-c:3013
-      - IDENTITY_URL=http://identity:3020
-      - MDM_URL=http://mdm-service:3030
-      - CONSENT_URL=http://consent-service:3040
-      - EVENT_BUS_URL=http://event-bus:3050
-      - WORKFLOW_URL=http://workflow:3060
-      - AUDIT_URL=http://audit-service:3070
+      DATABASE_URL: postgresql://sih:sih2026@postgres:5432/mahasetu
+      REDIS_URL: redis://redis:6379
+      IDENTITY_URL: http://identity:3020
+      MDM_URL: http://mdm:3030
+      CONSENT_URL: http://consent:3040
+      EVENT_BUS_URL: http://event-bus:3050
+      WORKFLOW_URL: http://workflow:3060
+      AUDIT_URL: http://audit:3070
+      DEPT_A_URL: http://dept-a:3001
+      DEPT_B_URL: http://dept-b:3002
+      DEPT_C_URL: http://dept-c:3003
+      ADAPTER_A_URL: http://adapter-a:3011
+      ADAPTER_B_URL: http://adapter-b:3012
+      ADAPTER_C_URL: http://adapter-c:3013
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'fetch(''http://localhost:3000/health'').then(r => process.exit(r.ok ? 0 :
+        1)).catch(() => process.exit(1))'
+      interval: 15s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - adapter-a
-      - adapter-b
-      - adapter-c
-      - identity
-      - mdm-service
-      - consent-service
-      - event-bus
-      - workflow
-      - audit-service
-    restart: unless-stopped
-
-  # ─── Frontend Applications ─────────────────────────────────
-  citizen-portal:
-    build: ./frontend/citizen
-    container_name: sih-citizen-portal
+      identity:
+        condition: service_healthy
+      mdm:
+        condition: service_healthy
+      consent:
+        condition: service_healthy
+      event-bus:
+        condition: service_healthy
+      workflow:
+        condition: service_healthy
+      audit:
+        condition: service_healthy
+      adapter-a:
+        condition: service_healthy
+      adapter-b:
+        condition: service_healthy
+      adapter-c:
+        condition: service_healthy
+  citizen:
+    build:
+      context: .
+      dockerfile: ./frontend/citizen/Dockerfile
+    container_name: sih-citizen
     ports:
-      - "5173:5173"
-    depends_on:
-      - gateway
+    - 5173:80
+    networks:
+    - sih-network
     restart: unless-stopped
-
-  official-dashboard:
-    build: ./frontend/official
-    container_name: sih-official-dashboard
+    depends_on:
+      gateway:
+        condition: service_healthy
+  official:
+    build:
+      context: .
+      dockerfile: ./frontend/official/Dockerfile
+    container_name: sih-official
     ports:
-      - "5174:5174"
-    depends_on:
-      - gateway
+    - 5174:80
+    networks:
+    - sih-network
     restart: unless-stopped
-
+    depends_on:
+      gateway:
+        condition: service_healthy
 volumes:
-  dept-a-data:
-  dept-b-data:
-  dept-c-data:
-  identity-data:
-  mdm-data:
-  consent-data:
-  events-data:
-  workflow-data:
-  audit-data:
+  postgres-data: null
+  dept-a-data: null
+  dept-b-data: null
+  dept-c-data: null
+  identity-data: null
+  mdm-data: null
+  consent-data: null
+  events-data: null
+  workflow-data: null
+  audit-data: null
+networks:
+  sih-network:
+    driver: bridge

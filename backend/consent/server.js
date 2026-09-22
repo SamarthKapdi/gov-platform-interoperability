@@ -8,7 +8,7 @@ const { initializeDb, createDb } = require('@sih/shared/db');
 const consentRoutes = require('./routes/consent');
 
 const app = express();
-const port = 3040;
+const PORT = process.env.PORT || 3040;
 
 app.use(cors());
 app.use(express.json());
@@ -71,7 +71,7 @@ async function main() {
         res.status(500).json({ error: 'Internal Server Error' });
     });
 
-    app.listen(port, () => {
+    app.listen(PORT, () => {
         console.log(`Consent Service listening at http://localhost:${port}`);
     });
 }

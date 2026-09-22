@@ -3,7 +3,7 @@ const stepExecutors = require('./step-executors');
 const publishEvent = async (event) => {
   try {
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-    await fetch('http://localhost:3050/events/publish', {
+    await fetch(${process.env.EVENT_BUS_URL || \'http://localhost:3050\'}/events/publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event)

@@ -10,24 +10,24 @@ const Interoperability = () => {
   const [data, setData] = useState({});
 
   useEffect(() => {
-    const checkHealth = async (id, port) => {
+    const checkHealth = async (id) => {
       const start = Date.now();
       try {
-        const res = await fetch(`http://localhost:${port}/health`);
+        const res = await fetch(`/api/dept${id}/health`);
         if (res.ok) setHealth(prev => ({ ...prev, [id]: { status: 'ONLINE', latency: Date.now() - start, time: new Date().toLocaleTimeString() } }));
         else throw new Error('Not OK');
       } catch (err) {
         setHealth(prev => ({ ...prev, [id]: { status: 'OFFLINE', latency: 0, time: new Date().toLocaleTimeString() } }));
       }
     };
-    checkHealth('A', 3001);
-    checkHealth('B', 3002);
-    checkHealth('C', 3003);
+    checkHealth('A');
+    checkHealth('B');
+    checkHealth('C');
     
     const interval = setInterval(() => {
-      checkHealth('A', 3001);
-      checkHealth('B', 3002);
-      checkHealth('C', 3003);
+      checkHealth('A');
+      checkHealth('B');
+      checkHealth('C');
     }, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -40,18 +40,18 @@ const Interoperability = () => {
     setExpanded(dept);
     if (!data[dept]) {
       try {
-        let rawPort, normPort, rawPath, normPath;
+        let rawPath, normPath;
         if (dept === 'A') {
-          rawPort = 3001; normPort = 3011; rawPath = '/registry/citizens'; normPath = '/citizens';
+          rawPath = '/api/raw-deptA/registry/citizens'; normPath = '/api/deptA/normalized/citizens';
         } else if (dept === 'B') {
-          rawPort = 3002; normPort = 3012; rawPath = '/registry/applicants'; normPath = '/citizens';
+          rawPath = '/api/raw-deptB/registry/applicants'; normPath = '/api/deptB/normalized/citizens';
         } else {
-          rawPort = 3003; normPort = 3013; rawPath = '/registry/beneficiaries'; normPath = '/citizens';
+          rawPath = '/api/raw-deptC/registry/beneficiaries'; normPath = '/api/deptC/normalized/citizens';
         }
 
         const [rawRes, normRes] = await Promise.all([
-          fetch(`http://localhost:${rawPort}${rawPath}`),
-          fetch(`http://localhost:${normPort}${normPath}`)
+          fetch(rawPath),
+          fetch(normPath)
         ]);
 
         if (!rawRes.ok || !normRes.ok) throw new Error('Failed to fetch from department or adapter');

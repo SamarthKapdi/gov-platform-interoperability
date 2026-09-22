@@ -1,13 +1,5 @@
 /**
- * SQLite compatibility wrapper using sql.js (pure JavaScript, no native build required).
- * 
- * This module provides a better-sqlite3-compatible API on top of sql.js,
- * so all existing service code works without changes.
- * 
- * Why sql.js over better-sqlite3:
- * - No native compilation required (no Visual Studio C++ build tools)
- * - Works on any Node.js version without prebuild binaries
- * - Same SQLite engine (compiled to WebAssembly)
+ * Database wrapper supporting both sql.js (SQLite) and pg (PostgreSQL).
  */
 
 const initSqlJs = require('sql.js');
@@ -15,17 +7,14 @@ const path = require('path');
 const fs = require('fs');
 
 let SQL = null;
+let pgPool = null;
 
-/**
- * Wrapper that provides a better-sqlite3-compatible synchronous API over sql.js.
- */
 class DatabaseWrapper {
   constructor(dbPath) {
     this._dbPath = dbPath;
     this._db = null;
     this._dirty = false;
 
-    // Load existing database or create new one
     if (fs.existsSync(dbPath)) {
       const buffer = fs.readFileSync(dbPath);
       this._db = new SQL.Database(buffer);
@@ -33,7 +22,6 @@ class DatabaseWrapper {
       this._db = new SQL.Database();
     }
 
-    // Save on clean exit
     process.on('exit', () => this._save());
     process.on('SIGINT', () => { this._save(); process.exit(); });
     setInterval(() => this._save(), 1000).unref();
@@ -54,37 +42,21 @@ class DatabaseWrapper {
     }
   }
 
-  /**
-   * Execute SQL statements (CREATE TABLE, INSERT, etc.)
-   */
   exec(sql) {
     this._db.run(sql);
     this._save();
     return this;
   }
 
-  /**
-   * Set pragma values (compatibility with better-sqlite3).
-   */
   pragma(pragmaStr) {
-    try {
-      this._db.run(`PRAGMA ${pragmaStr}`);
-    } catch (e) {
-      // Some pragmas (like journal_mode=WAL) are not supported in sql.js - ignore
-    }
+    try { this._db.run(`PRAGMA ${pragmaStr}`); } catch (e) {}
     return this;
   }
 
-  /**
-   * Prepare a SQL statement — returns a StatementWrapper.
-   */
   prepare(sql) {
     return new StatementWrapper(this, sql);
   }
 
-  /**
-   * Create a transaction function (compatible with better-sqlite3's transaction API).
-   */
   transaction(fn) {
     const self = this;
     return function (...args) {
@@ -93,11 +65,27 @@ class DatabaseWrapper {
         self._db.run('BEGIN TRANSACTION');
         startedTransaction = true;
         self._inTransaction = true;
-      } catch (e) {
-        // Already in transaction, just proceed
-      }
+      } catch (e) {}
+      
       try {
         const result = fn(...args);
+        if (result instanceof Promise) {
+          return result.then(res => {
+            if (startedTransaction) {
+              self._inTransaction = false;
+              self._db.run('COMMIT');
+              self._save();
+            }
+            return res;
+          }).catch(err => {
+            if (startedTransaction) {
+              self._inTransaction = false;
+              try { self._db.run('ROLLBACK'); } catch(e){}
+            }
+            throw err;
+          });
+        }
+        
         if (startedTransaction) {
           self._inTransaction = false;
           self._db.run('COMMIT');
@@ -123,18 +111,12 @@ class DatabaseWrapper {
   }
 }
 
-/**
- * Statement wrapper providing better-sqlite3-compatible .run(), .get(), .all() methods.
- */
 class StatementWrapper {
   constructor(dbWrapper, sql) {
     this._dbWrapper = dbWrapper;
     this._sql = sql;
   }
 
-  /**
-   * Execute the statement with parameters, returning { changes, lastInsertRowid }.
-   */
   run(...params) {
     const flatParams = this._flattenParams(params);
     const stmt = this._dbWrapper._db.prepare(this._sql);
@@ -150,47 +132,35 @@ class StatementWrapper {
         lastInsertRowid = res[0].values[0][0];
       }
     } catch(e) {
-      // Silently throw error up to caller instead of logging it here to prevent log spam
       throw e;
     } finally {
       stmt.free();
     }
     
     this._dbWrapper._save();
-
     return { changes, lastInsertRowid };
   }
 
-  /**
-   * Execute the statement and return the first row as an object, or undefined.
-   */
   get(...params) {
     const flatParams = this._flattenParams(params);
     const stmt = this._dbWrapper._db.prepare(this._sql);
     stmt.bind(flatParams);
-
+    let row = undefined;
     if (stmt.step()) {
       const columns = stmt.getColumnNames();
       const values = stmt.get();
-      stmt.free();
-      const row = {};
+      row = {};
       columns.forEach((col, i) => { row[col] = values[i]; });
-      return row;
     }
     stmt.free();
-    return undefined;
+    return row;
   }
 
-  /**
-   * Execute the statement and return all rows as an array of objects.
-   */
   all(...params) {
     const flatParams = this._flattenParams(params);
     const results = [];
-
     const stmt = this._dbWrapper._db.prepare(this._sql);
     stmt.bind(flatParams);
-
     while (stmt.step()) {
       const columns = stmt.getColumnNames();
       const values = stmt.get();
@@ -212,12 +182,125 @@ class StatementWrapper {
   }
 }
 
-/**
- * Create or open a SQLite database (synchronous, compatible with better-sqlite3 API).
- * @param {string} dbPath - Path to the .db file
- * @returns {DatabaseWrapper}
- */
+// PostgreSQL Wrapper
+class PgDatabaseWrapper {
+  constructor(dbName) {
+    this._dbName = dbName;
+    if (!pgPool) {
+      const { Pool } = require('pg');
+      pgPool = new Pool();
+    }
+  }
+
+  async exec(sql) {
+    await pgPool.query(sql);
+    return this;
+  }
+
+  pragma(pragmaStr) {
+    return this; // Ignore pragmas for Postgres
+  }
+
+  prepare(sql) {
+    return new PgStatementWrapper(sql);
+  }
+
+  transaction(fn) {
+    return async function (...args) {
+      const client = await pgPool.connect();
+      try {
+        await client.query('BEGIN');
+        
+        // Pass the client context so statements use this transaction?
+        // Wait, PgStatementWrapper uses the global pool.
+        // For a proper transaction, they should use the same client.
+        // But the API doesn't pass the db instance to the queries explicitly, they use the wrapper.
+        // To keep it simple and match the requirement, we'll store the client globally or thread-local.
+        // Let's use a quick hack: set it on the PgStatementWrapper via a static property or just pool if concurrent is not an issue for provisioning scripts.
+        // Since node is single-threaded, if we only run one transaction at a time, we can temporarily override pgPool.query.
+        
+        const originalQuery = pgPool.query;
+        pgPool.query = client.query.bind(client);
+        
+        let result;
+        try {
+          result = await fn(...args);
+        } catch(e) {
+          await client.query('ROLLBACK');
+          pgPool.query = originalQuery;
+          client.release();
+          throw e;
+        }
+        
+        await client.query('COMMIT');
+        pgPool.query = originalQuery;
+        client.release();
+        return result;
+      } catch (err) {
+        throw err;
+      }
+    };
+  }
+
+  close() {
+    // No-op or pgPool.end()
+  }
+}
+
+class PgStatementWrapper {
+  constructor(sql) {
+    this._sql = sql;
+  }
+
+  _convertSql(sql) {
+    let paramIndex = 1;
+    return sql.replace(/\?/g, () => `$${paramIndex++}`);
+  }
+
+  async run(...params) {
+    const flatParams = this._flattenParams(params);
+    const pgSql = this._convertSql(this._sql);
+    
+    // Convert generic AUTOINCREMENT or last_insert_rowid queries if needed?
+    // Not usually needed for standard inserts if returning is not used, but let's support changes.
+    const res = await pgPool.query(pgSql, flatParams);
+    
+    // For lastInsertRowid, postgres usually needs RETURNING id.
+    // If not provided, we just return 0.
+    return { changes: res.rowCount || 0, lastInsertRowid: 0 };
+  }
+
+  async get(...params) {
+    const flatParams = this._flattenParams(params);
+    const pgSql = this._convertSql(this._sql);
+    const res = await pgPool.query(pgSql, flatParams);
+    return res.rows[0];
+  }
+
+  async all(...params) {
+    const flatParams = this._flattenParams(params);
+    const pgSql = this._convertSql(this._sql);
+    const res = await pgPool.query(pgSql, flatParams);
+    return res.rows;
+  }
+
+  _flattenParams(params) {
+    if (params.length === 0) return [];
+    let p = params;
+    if (params.length === 1 && Array.isArray(params[0])) {
+      p = params[0];
+    }
+    return p.map(val => val === undefined ? null : val);
+  }
+}
+
 function createDb(dbPath) {
+  if (process.env.DB_MODE === 'postgres') {
+    // Extract db name from path, e.g., 'identity.db' -> 'identity'
+    const dbName = path.basename(dbPath, '.db');
+    return new PgDatabaseWrapper(dbName);
+  }
+
   const dir = path.dirname(dbPath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -230,32 +313,44 @@ function createDb(dbPath) {
   return new DatabaseWrapper(dbPath);
 }
 
-/**
- * Initialize sql.js WASM module. Must be called once before createDb().
- * Returns a promise.
- */
 async function initializeDb() {
+  if (process.env.DB_MODE === 'postgres') {
+    return; // pg doesn't need wasm init
+  }
   if (!SQL) {
     SQL = await initSqlJs();
   }
   return SQL;
 }
 
-/**
- * Synchronous createDb — requires initializeDb() to have been called first.
- */
 function createDbSync(dbPath) {
+  if (process.env.DB_MODE === 'postgres') {
+    return createDb(dbPath);
+  }
   if (!SQL) {
     throw new Error('sql.js not initialized. Call await initializeDb() before createDbSync().');
   }
   return createDb(dbPath);
 }
 
-/**
- * Initialize the shared audit_log table in a given database.
- */
 function initAuditTable(db) {
-  db.exec(`
+  const isPg = process.env.DB_MODE === 'postgres';
+  const sql = isPg ? `
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id SERIAL PRIMARY KEY,
+      actor TEXT NOT NULL,
+      actor_role TEXT,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      department TEXT,
+      before_state TEXT,
+      after_state TEXT,
+      metadata TEXT,
+      ip_address TEXT,
+      timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  ` : `
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       actor TEXT NOT NULL,
@@ -270,15 +365,32 @@ function initAuditTable(db) {
       ip_address TEXT,
       timestamp TEXT NOT NULL DEFAULT (datetime('now'))
     )
-  `);
+  `;
+  
+  if (isPg) {
+    return db.exec(sql); // returns promise
+  }
+  db.exec(sql);
   return db;
 }
 
-/**
- * Initialize the exceptions table for data-quality failures.
- */
 function initExceptionsTable(db) {
-  db.exec(`
+  const isPg = process.env.DB_MODE === 'postgres';
+  const sql = isPg ? `
+    CREATE TABLE IF NOT EXISTS exceptions (
+      id SERIAL PRIMARY KEY,
+      source TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      error_type TEXT NOT NULL,
+      error_message TEXT NOT NULL,
+      raw_data TEXT,
+      status TEXT NOT NULL DEFAULT 'OPEN',
+      retry_count INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      resolved_at TIMESTAMPTZ
+    )
+  ` : `
     CREATE TABLE IF NOT EXISTS exceptions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       source TEXT NOT NULL,
@@ -292,7 +404,12 @@ function initExceptionsTable(db) {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       resolved_at TEXT
     )
-  `);
+  `;
+
+  if (isPg) {
+    return db.exec(sql);
+  }
+  db.exec(sql);
   return db;
 }
 

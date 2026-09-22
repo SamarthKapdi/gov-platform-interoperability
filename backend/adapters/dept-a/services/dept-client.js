@@ -1,6 +1,6 @@
 const http = require('http');
 
-const DEPT_A_URL = 'http://localhost:3001';
+const DEPT_A_URL = process.env.DEPT_A_URL || 'http://localhost:3001';
 
 async function fetchFromDeptA(path, options = {}) {
   const url = `${DEPT_A_URL}${path}`;

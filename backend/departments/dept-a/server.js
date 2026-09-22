@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const path = require('path');
 const { initializeDb, createDb, initAuditTable, initExceptionsTable } = require('@sih/shared/db');
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 async function main() {
   await initializeDb();

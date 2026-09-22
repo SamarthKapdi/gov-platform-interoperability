@@ -54,7 +54,17 @@ router.post('/grant', async (req, res) => {
     }
 });
 
+// Allow revoking via URL param to match frontend contract
+router.post('/revoke/:id', async (req, res) => {
+    req.body.consentId = req.params.id;
+    await handleRevoke(req, res);
+});
+
 router.post('/revoke', async (req, res) => {
+    await handleRevoke(req, res);
+});
+
+async function handleRevoke(req, res) {
     try {
         const { consentId } = req.body;
         
@@ -94,7 +104,7 @@ router.post('/revoke', async (req, res) => {
         console.error('Error revoking consent:', error);
         res.status(500).json({ error: 'Failed to revoke consent' });
     }
-});
+}
 
 router.get('/check', (req, res) => {
     try {

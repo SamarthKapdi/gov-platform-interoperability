@@ -6,7 +6,7 @@ const fs = require('fs');
 const { initializeDb, createDb, initAuditTable, initExceptionsTable } = require('@sih/shared/db');
 
 const app = express();
-const port = 3070;
+const PORT = process.env.PORT || 3070;
 
 app.use(express.json());
 app.use(cors());
@@ -47,8 +47,8 @@ async function main() {
     res.status(500).json({ error: 'Internal Server Error', message: err.message });
   });
 
-  app.listen(port, () => {
-    console.log(`Audit Service listening on port ${port}`);
+  app.listen(PORT, () => {
+    console.log(`Audit Service listening on port `);
   });
 }
 

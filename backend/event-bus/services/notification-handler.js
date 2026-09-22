@@ -39,7 +39,7 @@ function handleEvents(db) {
         workflowId: data.workflow_id
       };
       // Send to Dept B
-      deliverWebhook(db, 'http://127.0.0.1:3002/api/webhook', webhookPayload, 'DEPT_B', 1);
+      deliverWebhook(db, `${process.env.DEPT_B_URL || 'http://localhost:3002'}/api/webhook`, webhookPayload, 'DEPT_B', 1);
     }
   });
 }
@@ -81,11 +81,13 @@ async function deliverWebhook(db, url, payload, targetDept, attempt) {
     console.log(`[Webhook Delivery] Failed to ${targetDept} (Attempt ${attempt}): ${err.message}`);
     
     if (attempt < 3) {
-      setTimeout(() => deliverWebhook(db, url, payload, targetDept, attempt + 1), 2000);
+      // Exponential backoff: 1s, 2s
+      const delay = Math.pow(2, attempt - 1) * 1000;
+      setTimeout(() => deliverWebhook(db, url, payload, targetDept, attempt + 1), delay);
     } else {
       console.error(`[Webhook Delivery] Permanent failure. Dead-lettering to exceptions.`);
       try {
-        await fetch('http://127.0.0.1:3070/exceptions', {
+        await fetch(`${process.env.AUDIT_URL || 'http://localhost:3070'}/exceptions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

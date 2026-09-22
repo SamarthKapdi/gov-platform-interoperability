@@ -37,19 +37,19 @@ const DemoControls = () => {
       <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">Demo Control Centre</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <button onClick={() => handleAction('Simulate Dept B Outage', 'http://localhost:3002/admin/simulate-outage')} className="bg-slate-900 text-white font-bold py-3 px-6 rounded hover:bg-slate-800 transition">
+        <button onClick={() => handleAction('Simulate Dept B Outage', '/api/raw-deptB/admin/simulate-outage')} className="bg-slate-900 text-white font-bold py-3 px-6 rounded hover:bg-slate-800 transition">
           Simulate Dept B Outage
         </button>
-        <button onClick={() => handleAction('Restore Dept B', 'http://localhost:3002/admin/restore')} className="bg-emerald-600 text-white font-bold py-3 px-6 rounded hover:bg-emerald-700 transition">
+        <button onClick={() => handleAction('Restore Dept B', '/api/raw-deptB/admin/restore')} className="bg-emerald-600 text-white font-bold py-3 px-6 rounded hover:bg-emerald-700 transition">
           Restore Dept B
         </button>
-        <button onClick={() => handleAction('Create Test Application', 'http://localhost:3000/api/workflow/instances', 'POST', true)} className="bg-amber-500 text-slate-900 font-bold py-3 px-6 rounded hover:bg-amber-600 transition">
+        <button onClick={() => handleAction('Create Test Application', '/api/workflow/instances', 'POST', true)} className="bg-amber-500 text-slate-900 font-bold py-3 px-6 rounded hover:bg-amber-600 transition">
           Create Test Application
         </button>
-        <button onClick={() => handleAction('Trigger MDM Match', 'http://localhost:3030/match')} className="bg-blue-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 transition">
+        <button onClick={() => handleAction('Trigger MDM Match', '/api/mdm/match')} className="bg-blue-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 transition">
           Trigger MDM Match
         </button>
-        <button onClick={() => handleAction('Advance Demo Workflow', 'http://localhost:3000/api/workflow/instances/wf-demo-001/advance', 'POST', true)} className="bg-indigo-600 text-white font-bold py-3 px-6 rounded hover:bg-indigo-700 transition">
+        <button onClick={() => handleAction('Advance Demo Workflow', '/api/workflow/instances/wf-demo-001/advance', 'POST', true)} className="bg-indigo-600 text-white font-bold py-3 px-6 rounded hover:bg-indigo-700 transition">
           Advance Demo Workflow
         </button>
       </div>

@@ -4,7 +4,7 @@ const cors = require('cors');
 const normalizedRoutes = require('./routes/normalized');
 
 const app = express();
-const PORT = 3011;
+const PORT = process.env.PORT || 3011;
 
 app.use(cors());
 app.use(express.json());

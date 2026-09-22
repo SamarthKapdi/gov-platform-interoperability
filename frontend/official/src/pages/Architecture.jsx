@@ -17,19 +17,19 @@ const Architecture = () => {
 
     const checkHealth = async () => {
       const services = {
-        gateway: 3000,
-        identity: 3020,
-        mdm: 3030,
-        consent: 3040,
-        workflow: 3060,
-        bus: 3050,
-        audit: 3070,
-        adapterA: 3011,
-        adapterB: 3012,
-        adapterC: 3013,
-        deptA: 3001,
-        deptB: 3002,
-        deptC: 3003
+        gateway: '/health',
+        identity: '/api/auth/health',
+        mdm: '/api/mdm/health',
+        consent: '/api/consent/health',
+        workflow: '/api/workflow/health',
+        bus: '/api/events/health',
+        audit: '/api/audit/health',
+        adapterA: '/api/deptA/health',
+        adapterB: '/api/deptB/health',
+        adapterC: '/api/deptC/health',
+        deptA: '/api/raw-deptA/health',
+        deptB: '/api/raw-deptB/health',
+        deptC: '/api/raw-deptC/health'
       };
 
       const newHealth = {
@@ -37,13 +37,13 @@ const Architecture = () => {
         official: 'ONLINE',
       };
 
-      for (const [key, port] of Object.entries(services)) {
+      for (const [key, path] of Object.entries(services)) {
         try {
           // Fast timeout for health checks
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 2000);
           
-          const res = await fetch(`http://localhost:${port}/health`, { signal: controller.signal });
+          const res = await fetch(path, { signal: controller.signal });
           clearTimeout(timeoutId);
           
           newHealth[key] = res.ok ? 'ONLINE' : 'OFFLINE';
@@ -98,8 +98,8 @@ const Architecture = () => {
             <Node title="Identity Service" status={health.identity} colorClass="border-blue-400" port="3020" />
             <Node title="MDM Engine" subtitle="Golden Record" status={health.mdm} colorClass="border-amber-500" port="3030" />
             <Node title="Consent Manager" status={health.consent} colorClass="border-blue-400" port="3040" />
-            <Node title="Workflow Engine" status={health.workflow} colorClass="border-blue-400" port="3050" />
-            <Node title="Audit & Security" status={health.audit} colorClass="border-blue-400" port="3060" />
+            <Node title="Workflow Engine" status={health.workflow} colorClass="border-blue-400" port="3060" />
+            <Node title="Audit & Security" status={health.audit} colorClass="border-blue-400" port="3070" />
             
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-1 rounded-full font-mono">
               Event Bus (RabbitMQ / Kafka)

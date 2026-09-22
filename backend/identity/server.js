@@ -10,7 +10,7 @@ const { initializeDb, createDb } = require('@sih/shared/db');
 const { createAuthRoutes } = require('./routes/auth');
 const { JWT_ISSUER } = require('@sih/shared/auth');
 
-const PORT = 3020;
+const PORT = process.env.PORT || 3020;
 const app = express();
 
 app.use(cors());
@@ -38,6 +38,10 @@ async function main() {
       name TEXT,
       email TEXT,
       mobile TEXT,
+      aadhaar TEXT,
+      dob TEXT,
+      gender TEXT,
+      address TEXT,
       role TEXT,
       department TEXT,
       is_active INTEGER,
@@ -70,10 +74,10 @@ async function main() {
     try {
       const { name } = req.query;
       if (name) {
-        const users = db.prepare('SELECT id, username, name, email, role, department FROM users WHERE name = ?').all(name);
+        const users = db.prepare('SELECT id, username, name, email, mobile, aadhaar, dob, gender, role, department FROM users WHERE name LIKE ?').all(`%${name}%`);
         res.json(users);
       } else {
-        const users = db.prepare('SELECT id, username, name, email, role, department FROM users').all();
+        const users = db.prepare('SELECT id, username, name, email, mobile, aadhaar, dob, gender, role, department FROM users').all();
         res.json(users);
       }
     } catch (err) {

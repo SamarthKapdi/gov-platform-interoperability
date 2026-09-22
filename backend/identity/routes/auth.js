@@ -9,7 +9,7 @@ function createAuthRoutes(db) {
   // POST /auth/register
   router.post('/register', authMiddleware({ optional: true }), async (req, res) => {
     try {
-      const { username, password, name, email, mobile, role, department } = req.body;
+      const { username, password, name, email, mobile, aadhaar, dob, gender, address, role, department } = req.body;
       
       // Basic validation
       if (!username || !password || !name || !role) {
@@ -34,11 +34,11 @@ function createAuthRoutes(db) {
       const now = new Date().toISOString();
 
       const stmt = db.prepare(`
-        INSERT INTO users (id, username, password_hash, name, email, mobile, role, department, is_active, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+        INSERT INTO users (id, username, password_hash, name, email, mobile, aadhaar, dob, gender, address, role, department, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
       `);
 
-      stmt.run(id, username, passwordHash, name, email || null, mobile || null, role, department || null, now);
+      stmt.run(id, username, passwordHash, name, email || null, mobile || null, aadhaar || null, dob || null, gender || null, address || null, role, department || null, now);
 
       res.status(201).json({ message: 'User registered successfully', userId: id });
     } catch (error) {

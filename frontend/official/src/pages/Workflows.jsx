@@ -43,7 +43,7 @@ const Workflows = () => {
     setActionLoading(true);
     setError('');
     try {
-      const res = await fetch(`http://localhost:3000/api/workflow/instances/${id}/advance`, {
+      const res = await fetch(`/api/workflow/instances/${id}/advance`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });

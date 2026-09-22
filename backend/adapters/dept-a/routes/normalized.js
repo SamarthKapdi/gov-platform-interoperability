@@ -8,7 +8,7 @@ const transformer = require('../transformers/dept-a-transformer'); // Pluggable 
 // Log validation exceptions to audit service
 async function logException(exceptionData) {
   const data = JSON.stringify(exceptionData);
-  const req = http.request('http://localhost:3070/exceptions', {
+  const req = http.request(${process.env.AUDIT_URL || \'http://localhost:3070\'}/exceptions, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

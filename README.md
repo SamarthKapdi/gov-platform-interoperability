@@ -202,28 +202,43 @@ MAHA-SETU is designed and verified as a genuine database-backed prototype:
 
 * **Node.js**: v20.x or higher
 * **npm**: v10.x or higher
+* **Docker** & **Docker Compose**
 * **Git**
 
-### 2. Installation
+### 2. Production Deployment (Docker + PostgreSQL + Redis)
+
+The platform is designed to be fully containerized. To spin up the entire 17-container stack (API Gateway, 7 core microservices, 3 adapters, 3 departments, 2 frontends, PostgreSQL database, and Redis broker):
 
 ```bash
+# Clone the repository
 git clone https://github.com/SamarthKapdi/gov-platform-interoperability.git
 cd gov-platform-interoperability
-npm install
+
+# Copy the environment file
+cp .env.example .env
+
+# Generate a strong JWT secret in .env before proceeding
+# Start the stack
+docker compose up --build -d
+
+# Check health of all services
+curl http://localhost:3000/health
 ```
 
-### 3. Initialize & Start
+### 3. Local Development (SQLite + In-Memory Event Bus)
 
-Initialize a clean database, provision operational administrator/officer accounts, and launch all services:
+For rapid local development without Docker, MAHA-SETU gracefully falls back to a dual-mode persistence layer using SQLite and an in-memory event bus.
 
 ```bash
+npm install
+
 # Clear any prior databases
 npm run reset:empty
 
 # Provision operational administrator and departmental official accounts
 npm run provision:admin
 
-# Launch all backend services, adapters, department mocks, and frontend apps
+# Launch all services locally
 npm run start:all
 ```
 
@@ -239,7 +254,7 @@ npm run start:all
 
 ## Verification
 
-The platform includes two independent automated verification suites that test against fresh runtime data:
+The platform includes two independent automated verification suites that test against fresh runtime data.
 
 ```bash
 # 1. Full-Lifecycle Real Product E2E Test
@@ -251,13 +266,12 @@ npm run test:all
 
 ### What the Tests Verify:
 
-* **Empty Database Bootstrap:** Validates clean startup with no hardcoded business seed data.
+* **PostgreSQL / SQLite Dual-Mode:** Both test suites automatically detect the active `DB_MODE` and test the respective drivers.
 * **Authentication & RBAC:** Tests registration, JWT token generation, role restrictions, and negative auth rejection.
 * **MDM & Golden Records:** Ingests heterogeneous department records and validates matching algorithms.
 * **Consent Verification:** Confirms cross-department data exchange is rejected without active consent and granted when consent is present.
 * **Workflow Progression:** Tests multi-step advancement through state machine validation rules.
-* **DLQ & Outage Recovery:** Simulates Department B outage, confirms failure dead-lettering, recovers service, triggers replay, and asserts workflow continuation.
-* **Service Restart Persistence:** Shuts down all processes, restarts them, and verifies that citizens, workflows, and applications survive.
+* **DLQ & Outage Recovery:** Simulates Department B outage, confirms failure dead-lettering, recovers service, triggers webhook retry backoff, and asserts workflow continuation.
 
 ---
 
@@ -267,11 +281,11 @@ npm run test:all
 |---|---|
 | **Frontend** | React 18, Vite, Tailwind CSS, Lucide Icons, Recharts |
 | **Backend** | Node.js, Express.js |
-| **Data & Storage** | SQLite via WebAssembly (`sql.js`), file-backed persistence |
+| **Data & Storage** | **PostgreSQL** (Production) / **SQLite** (Development Fallback) |
 | **Identity & Security** | JWT (JSON Web Tokens), bcryptjs, role-based access control (RBAC) |
-| **Messaging** | Event-driven pub/sub architecture with local in-memory fallback and Redis transport support |
+| **Messaging** | **Redis** (Production) / In-memory (Development Fallback) with exponential webhook backoff |
 | **Data Standards** | JSON Schema (IndEA / National Data Governance Framework aligned) |
-| **Containerization** | Docker, Docker Compose |
+| **Containerization** | Docker, Docker Compose (Multi-stage builds) |
 
 ---
 

@@ -84,28 +84,61 @@ router.get('/search', async (req, res) => {
 
   if (type === 'mobile') {
     citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE mobile = ?').get(q);
-  } else if (type === 'golden_id') {
+  } else if (type === 'golden_id' || type === 'canonical_id') {
     citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE canonical_id = ?').get(q);
-  } else if (type === 'dept_id') {
+  } else if (type === 'dept_id' || type === 'department_id') {
     const link = req.db.prepare('SELECT canonical_id FROM department_links WHERE department_id = ?').get(q);
     if (link) {
       citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE canonical_id = ?').get(link.canonical_id);
     }
   } else {
+    // Search by name in golden_citizens
     const likeQ = `%${q}%`;
-    citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE full_name LIKE ? OR mobile LIKE ?').get(likeQ, likeQ);
+    citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE name LIKE ? OR mobile LIKE ?').get(likeQ, likeQ);
+  }
+
+  // Fallback: if no golden record found, search Identity service directly
+  if (!citizen) {
+    try {
+      const identityUrl = process.env.IDENTITY_URL || 'http://localhost:3020';
+      const identityRes = await fetch(`${identityUrl}/users?name=${encodeURIComponent(q)}`);
+      if (identityRes.ok) {
+        const users = await identityRes.json();
+        const match = users.find(u => u.role === 'citizen' && u.name.toLowerCase().includes(q.toLowerCase()));
+        if (match) {
+          // Return a synthesized citizen record from identity data
+          citizen = {
+            canonical_id: match.id,
+            name: match.name,
+            date_of_birth: match.dob || 'N/A',
+            mobile: match.mobile || 'N/A',
+            email: match.email || null,
+            confidence_score: 1.0,
+            source: 'identity-service'
+          };
+        }
+      }
+    } catch (e) {
+      // Identity service unavailable, continue with not found
+    }
   }
 
   if (!citizen) return res.status(404).json({ error: 'Not found' });
   
   const departmentLinks = req.db.prepare('SELECT department, department_id, department_id_field FROM department_links WHERE canonical_id = ?').all(citizen.canonical_id);
   
-  const fullProfile = await fetchFullProfileData(citizen.canonical_id, departmentLinks);
-  
+  if (departmentLinks.length > 0) {
+    const fullProfile = await fetchFullProfileData(citizen.canonical_id, departmentLinks);
+    return res.json({
+      citizen,
+      departmentLinks,
+      ...fullProfile
+    });
+  }
+
   res.json({
     citizen,
-    departmentLinks,
-    ...fullProfile
+    departmentLinks: []
   });
 });
 

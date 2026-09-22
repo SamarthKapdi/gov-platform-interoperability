@@ -12,6 +12,9 @@ const jwt = require('jsonwebtoken');
 
 // Shared secret — in production this would be an RSA key pair or JWKS endpoint
 const JWT_SECRET = process.env.JWT_SECRET || 'sih-26129-interop-platform-secret-key-2026';
+if (JWT_SECRET === 'sih-26129-interop-platform-secret-key-2026' && process.env.NODE_ENV === 'production') {
+  console.warn('WARNING: Using default hardcoded JWT secret in production! Set process.env.JWT_SECRET.');
+}
 const JWT_ISSUER = 'sih-26129-identity-service';
 
 /**

@@ -20,10 +20,10 @@ async function provision() {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const db = createDbSync(dbPath);
+    const db = await createDbSync(dbPath);
 
     // Ensure table exists just in case identity service hasn't started yet
-    db.exec(`
+    await db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         username TEXT UNIQUE,
@@ -31,6 +31,10 @@ async function provision() {
         name TEXT,
         email TEXT,
         mobile TEXT,
+        aadhaar TEXT,
+        dob TEXT,
+        gender TEXT,
+        address TEXT,
         role TEXT,
         department TEXT,
         is_active INTEGER,
@@ -39,22 +43,22 @@ async function provision() {
     `);
 
     const insertUser = db.prepare(`
-        INSERT OR IGNORE INTO users (id, username, password_hash, name, role, department, is_active, created_at)
+        INSERT ${process.env.DB_MODE === 'postgres' ? 'ON CONFLICT DO NOTHING' : 'OR IGNORE'} INTO users (id, username, password_hash, name, role, department, is_active, created_at)
         VALUES (?, ?, ?, ?, ?, ?, 1, ?)
     `);
 
     const now = new Date().toISOString();
     let changes = 0;
 
-    db.transaction(() => {
+    await db.transaction(async () => {
         const adminHash = bcrypt.hashSync('admin123', 10);
-        const resAdmin = insertUser.run(uuidv4(), 'admin', adminHash, 'System Administrator', 'admin', null, now);
+        const resAdmin = await insertUser.run(uuidv4(), 'admin', adminHash, 'System Administrator', 'admin', null, now);
         changes += resAdmin.changes;
         
         const officialHash = bcrypt.hashSync('password123', 10);
-        const resA = insertUser.run(uuidv4(), 'official_a', officialHash, 'Officer Dept A', 'dept_official', 'DEPT_A', now);
-        const resB = insertUser.run(uuidv4(), 'official_b', officialHash, 'Officer Dept B', 'dept_official', 'DEPT_B', now);
-        const resC = insertUser.run(uuidv4(), 'official_c', officialHash, 'Officer Dept C', 'dept_official', 'DEPT_C', now);
+        const resA = await insertUser.run(uuidv4(), 'official_a', officialHash, 'Officer Dept A', 'dept_official', 'DEPT_A', now);
+        const resB = await insertUser.run(uuidv4(), 'official_b', officialHash, 'Officer Dept B', 'dept_official', 'DEPT_B', now);
+        const resC = await insertUser.run(uuidv4(), 'official_c', officialHash, 'Officer Dept C', 'dept_official', 'DEPT_C', now);
         
         changes += resA.changes + resB.changes + resC.changes;
     })();
@@ -65,6 +69,8 @@ async function provision() {
         console.log('✓ Administrative accounts already exist.');
     }
     console.log('System provisioning complete.\n');
+    
+    if (db.close) db.close();
 }
 
 provision().catch(err => {
