@@ -17,7 +17,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 1. CORS
-app.use(cors());
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    
+    // In production, enforce CORS_ORIGIN if provided
+    if (process.env.NODE_ENV === 'production' && process.env.CORS_ORIGIN) {
+      const allowedOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    }
+    
+    // Default fallback (local dev or unspecified production)
+    callback(null, true);
+  },
+  credentials: true
+};
+app.use(cors(corsOptions));
 
 // 1.5 Security Headers & Correlation ID
 const { v4: uuidv4 } = require('uuid');

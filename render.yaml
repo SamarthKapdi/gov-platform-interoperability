@@ -1,0 +1,69 @@
+services:
+  - type: web
+    name: mahasetu-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node scripts/start-cloud.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_MODE
+        value: postgres
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: DEPT_A_PORT
+        value: 3001
+      - key: DEPT_B_PORT
+        value: 3002
+      - key: DEPT_C_PORT
+        value: 3003
+      - key: RAW_DEPT_A_PORT
+        value: 3011
+      - key: RAW_DEPT_B_PORT
+        value: 3012
+      - key: RAW_DEPT_C_PORT
+        value: 3013
+      - key: IDENTITY_PORT
+        value: 3020
+      - key: MDM_PORT
+        value: 3030
+      - key: CONSENT_PORT
+        value: 3040
+      - key: EVENT_BUS_PORT
+        value: 3050
+      - key: WORKFLOW_PORT
+        value: 3060
+      - key: AUDIT_PORT
+        value: 3070
+
+  - type: web
+    name: mahasetu-citizen
+    env: static
+    buildCommand: npm install && cd frontend/citizen && npm install && npm run build
+    staticPublishPath: frontend/citizen/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: mahasetu-backend
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: mahasetu-official
+    env: static
+    buildCommand: npm install && cd frontend/official && npm install && npm run build
+    staticPublishPath: frontend/official/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: mahasetu-backend
+          envVarKey: RENDER_EXTERNAL_URL

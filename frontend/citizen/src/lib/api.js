@@ -1,3 +1,5 @@
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export const getAuthToken = () => localStorage.getItem('sih_token');
 
 export const fetchWithAuth = async (url, options = {}) => {
@@ -8,12 +10,12 @@ export const fetchWithAuth = async (url, options = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(`${API_BASE}${url}`, { ...options, headers });
   
   if (response.status === 401) {
     localStorage.removeItem('sih_token');
     localStorage.removeItem('sih_user');
-    window.location.href = '/';
+    window.location.href = '/login';
   }
   
   if (!response.ok) {
@@ -31,7 +33,7 @@ export const fetchWithAuth = async (url, options = {}) => {
 };
 
 export const login = async (username, password) => {
-  const response = await fetch('/api/auth/login', {
+  const response = await fetch(`${API_BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),

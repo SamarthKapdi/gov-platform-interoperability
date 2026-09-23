@@ -2,12 +2,42 @@
 
 An interoperability layer that helps disconnected government systems exchange trusted data with consent, traceability, and resilient cross-department workflows.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SamarthKapdi/gov-platform-interoperability)
+
 [![SIH 2026](https://img.shields.io/badge/SIH%202026-PS%2026129-blue.svg)](docs/sih/problem-statement.md)
 [![Platform](https://img.shields.io/badge/Platform-Full--Stack%20Prototype-emerald.svg)](#)
 [![Node.js](https://img.shields.io/badge/Node.js-v20%2B-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg)](https://react.dev/)
 [![Architecture](https://img.shields.io/badge/Architecture-Event--Driven-orange.svg)](#architecture)
-[![Database](https://img.shields.io/badge/Database-SQLite%20(sql.js)-lightgrey.svg)](#persistence)
+[![Database](https://img.shields.io/badge/Database-SQLite%20(Local)%20|%20PostgreSQL%20(Cloud)-lightgrey.svg)](#persistence)
+
+## 🚀 One-Click Cloud Deployment
+
+You can deploy the complete MAHA-SETU ecosystem to Render for free using the button above.
+
+### Prerequisites (For Free Cloud Hosting)
+This Blueprint deploys the **Citizen Portal**, **Official Dashboard**, and the **Unified Backend Orchestrator** in free-tier environments.
+To support persistent data in the cloud, you will need two external free resources:
+1. **Free PostgreSQL Database** (e.g., Neon.tech, Supabase, or Render's 30-day free DB)
+2. **Free Redis Database** (e.g., Upstash)
+
+### Deployment Steps
+1. Click the **Deploy to Render** button above.
+2. Connect or authorize your GitHub account if requested.
+3. In the Render Blueprint configuration screen, fill in the following required secrets:
+   - `DATABASE_URL`: Your PostgreSQL connection string.
+   - `REDIS_URL`: Your Redis connection string.
+   - `JWT_SECRET`: A long random string for token generation.
+   - `ADMIN_PASSWORD`: The password for the `admin` portal account.
+4. Click **Apply**. Render will automatically provision:
+   - `mahasetu-backend` (The unified microservice orchestrator)
+   - `mahasetu-citizen` (The public citizen portal)
+   - `mahasetu-official` (The secure official dashboard)
+5. Wait for the services to become live.
+6. Open your newly deployed **Citizen Portal** and **Official Dashboard** using the public URLs provided in the Render dashboard!
+
+*Note: This deployment is intended for free-tier demonstration/evaluation. Free providers may sleep after inactivity, pause, or limit compute/storage. The backend orchestrator spins up the full microservice suite inside a single node.*
+
 
 ---
 
