@@ -10,10 +10,12 @@ import Notifications from './pages/Notifications';
 import Navbar from './components/Navbar';
 import { useAuth } from './hooks/useAuth';
 
+import Landing from './pages/Landing';
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div></div>;
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/login" replace />;
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-slate-900">
       <Navbar />
@@ -29,7 +31,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/tracker" element={<ProtectedRoute><Tracker /></ProtectedRoute>} />
           <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />

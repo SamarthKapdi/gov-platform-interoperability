@@ -38,7 +38,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms [R
 // 3. Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
 });

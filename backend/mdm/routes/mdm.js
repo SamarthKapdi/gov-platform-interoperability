@@ -63,12 +63,50 @@ router.get('/citizen/by-dept/:department/:departmentId', (req, res) => {
 });
 
 router.get('/citizen/:canonicalId/full-profile', async (req, res) => {
-  const citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE canonical_id = ?').get(req.params.canonicalId);
+  let citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE canonical_id = ?').get(req.params.canonicalId);
+  
+  if (!citizen) {
+    // Fallback: If canonicalId is actually an Identity Service user.id, find them by mobile/name
+    try {
+      const identityUrl = process.env.IDENTITY_URL || 'http://localhost:3020';
+      const identityRes = await fetch(`${identityUrl}/users`);
+      if (identityRes.ok) {
+        const users = await identityRes.json();
+        const user = users.find(u => u.id === req.params.canonicalId);
+        if (user) {
+          if (user.mobile) {
+            citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE mobile = ?').get(user.mobile);
+          }
+          if (!citizen && user.name) {
+            citizen = req.db.prepare('SELECT * FROM golden_citizens WHERE name = ?').get(user.name);
+          }
+          if (!citizen) {
+            // Synthesize a basic citizen record if no golden record exists yet
+            citizen = {
+              canonical_id: user.id,
+              name: user.name,
+              date_of_birth: user.dob || 'N/A',
+              mobile: user.mobile || 'N/A',
+              email: user.email || null,
+              confidence_score: 1.0,
+              source: 'identity-service'
+            };
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Identity fallback error:', e.message);
+    }
+  }
+
   if (!citizen) return res.status(404).json({ error: 'Not found' });
   
-  const departmentLinks = req.db.prepare('SELECT department, department_id, department_id_field FROM department_links WHERE canonical_id = ?').all(req.params.canonicalId);
+  const departmentLinks = req.db.prepare('SELECT department, department_id, department_id_field FROM department_links WHERE canonical_id = ?').all(citizen.canonical_id);
   
-  const fullProfile = await fetchFullProfileData(req.params.canonicalId, departmentLinks);
+  let fullProfile = {};
+  if (departmentLinks.length > 0) {
+    fullProfile = await fetchFullProfileData(citizen.canonical_id, departmentLinks);
+  }
   
   res.json({
     citizen,

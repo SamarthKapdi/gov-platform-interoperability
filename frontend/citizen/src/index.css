@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 /* Minimal custom styles, if any */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
 }
