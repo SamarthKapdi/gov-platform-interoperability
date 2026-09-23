@@ -47,6 +47,22 @@ router.post('/grant', async (req, res) => {
             metadata: JSON.stringify({ requestingDept, dataScope, purpose })
         });
 
+        try {
+            await fetch(`${process.env.EVENT_BUS_URL || 'http://localhost:3050'}/events/publish`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'consent.granted',
+                    citizenId,
+                    department: grantingDept,
+                    source: 'consent-service',
+                    data: { requestingDept, dataScope, purpose }
+                })
+            });
+        } catch (e) {
+            console.error('Failed to publish consent.granted event:', e.message);
+        }
+
         res.json({ success: true, consentId: id, status: 'ACTIVE', expiresAt });
     } catch (error) {
         console.error('Error granting consent:', error);
@@ -98,6 +114,22 @@ async function handleRevoke(req, res) {
             department: 'SYSTEM',
             metadata: JSON.stringify({ reason: 'Revoked by user request' })
         });
+
+        try {
+            await fetch(`${process.env.EVENT_BUS_URL || 'http://localhost:3050'}/events/publish`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'consent.revoked',
+                    citizenId: row.citizen_id,
+                    department: row.granting_dept,
+                    source: 'consent-service',
+                    data: { requestingDept: row.requesting_dept, dataScope: row.data_scope }
+                })
+            });
+        } catch (e) {
+            console.error('Failed to publish consent.revoked event:', e.message);
+        }
 
         res.json({ success: true, message: 'Consent revoked successfully' });
     } catch (error) {

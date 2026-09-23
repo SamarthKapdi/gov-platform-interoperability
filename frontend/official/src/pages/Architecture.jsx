@@ -43,7 +43,10 @@ const Architecture = () => {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 2000);
           
-          const res = await fetch(path, { signal: controller.signal });
+          const res = await fetch(path, { 
+            signal: controller.signal,
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          });
           clearTimeout(timeoutId);
           
           newHealth[key] = res.ok ? 'ONLINE' : 'OFFLINE';

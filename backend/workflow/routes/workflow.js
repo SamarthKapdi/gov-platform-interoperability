@@ -165,6 +165,9 @@ router.post('/instances/:id/advance', async (req, res) => {
   // Emit event
   await publishEvent({
     type: 'workflow.transition.completed',
+    citizenId: instance.citizen_id,
+    department: 'SYSTEM',
+    source: 'workflow-service',
     data: {
       workflow_id: instanceId,
       application_id: instance.application_id,

@@ -72,7 +72,7 @@ async function main() {
     });
 
     app.listen(PORT, () => {
-        console.log(`Consent Service listening at http://localhost:${port}`);
+        console.log(`Consent Service listening at http://localhost:${PORT}`);
     });
 }
 

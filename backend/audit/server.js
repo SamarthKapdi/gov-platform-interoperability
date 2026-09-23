@@ -48,7 +48,7 @@ async function main() {
   });
 
   app.listen(PORT, () => {
-    console.log(`Audit Service listening on port `);
+    console.log(`Audit Service listening on port ${PORT}`);
   });
 }
 

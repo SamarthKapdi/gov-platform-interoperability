@@ -13,7 +13,9 @@ const Interoperability = () => {
     const checkHealth = async (id) => {
       const start = Date.now();
       try {
-        const res = await fetch(`/api/dept${id}/health`);
+        const res = await fetch(`/api/dept${id}/health`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
         if (res.ok) setHealth(prev => ({ ...prev, [id]: { status: 'ONLINE', latency: Date.now() - start, time: new Date().toLocaleTimeString() } }));
         else throw new Error('Not OK');
       } catch (err) {
@@ -50,8 +52,8 @@ const Interoperability = () => {
         }
 
         const [rawRes, normRes] = await Promise.all([
-          fetch(rawPath),
-          fetch(normPath)
+          fetch(rawPath, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
+          fetch(normPath, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
         ]);
 
         if (!rawRes.ok || !normRes.ok) throw new Error('Failed to fetch from department or adapter');

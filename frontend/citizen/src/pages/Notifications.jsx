@@ -33,6 +33,8 @@ export default function Notifications() {
       };
 
       fetchEvents();
+      const interval = setInterval(fetchEvents, 15000);
+      return () => clearInterval(interval);
     }
   }, [user]);
 

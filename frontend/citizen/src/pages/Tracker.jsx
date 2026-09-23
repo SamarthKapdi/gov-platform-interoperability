@@ -20,15 +20,21 @@ export default function Tracker() {
   useEffect(() => {
     if (user) {
       const citizenId = user.id || user.sub;
-      fetchWithAuth(`/api/workflow/instances?citizen_id=${citizenId}`)
-        .then(data => {
-          setApplications(data || []);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error(err);
-          setLoading(false);
-        });
+      const fetchData = () => {
+        fetchWithAuth(`/api/workflow/instances?citizen_id=${citizenId}`)
+          .then(data => {
+            setApplications(data || []);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error(err);
+            setLoading(false);
+          });
+      };
+      
+      fetchData();
+      const interval = setInterval(fetchData, 10000);
+      return () => clearInterval(interval);
     }
   }, [user]);
 

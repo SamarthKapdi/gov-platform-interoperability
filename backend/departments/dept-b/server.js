@@ -114,8 +114,8 @@ async function main() {
     res.json({ status: 'ok', service: 'dept-b-employment-registry' });
   });
 
-  app.listen(PORT, () => {
-    console.log(`Dept B Employment Registry running on port `);
+  app.listen(port, () => {
+    console.log(`Dept B Employment Registry running on port ${port}`);
   });
 }
 

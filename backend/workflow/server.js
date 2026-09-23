@@ -59,7 +59,7 @@ async function main() {
   app.use('/', authMiddleware({ optional: true }), workflowRoutes);
 
   app.listen(PORT, () => {
-    console.log(`Workflow Orchestration Service running on port `);
+    console.log(`Workflow Orchestration Service running on port ${PORT}`);
   });
 }
 

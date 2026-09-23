@@ -44,30 +44,32 @@ const Dashboard = () => {
   });
 
   const [pulseEvents, setPulseEvents] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setError(null);
       try {
         const m = await getMetrics();
         setMetrics(m);
-      } catch (err) { console.error('Metrics fetch error', err); }
+      } catch (err) { setError(err.message); console.error('Metrics fetch error', err); }
 
       try {
         const h = await getGatewayHealth();
         setHealth({
-          status: h.status || 'ONLINE',
+          status: h.status || 'UNKNOWN',
           services: h.services || {
-            'api-gateway': { status: 'ONLINE', latency: 12 },
-            'mdm-engine': { status: 'ONLINE', latency: 45 },
-            'consent-service': { status: 'ONLINE', latency: 18 }
+            'api-gateway': { status: 'UNKNOWN', latency: 0 },
+            'mdm-engine': { status: 'UNKNOWN', latency: 0 },
+            'consent-service': { status: 'UNKNOWN', latency: 0 }
           }
         });
-      } catch (err) { console.error('Health fetch error', err); }
+      } catch (err) { setError(err.message); console.error('Health fetch error', err); }
 
       try {
         const evts = await getRecentEvents(5);
         setPulseEvents(evts);
-      } catch (err) { console.error('Events fetch error', err); }
+      } catch (err) { setError(err.message); console.error('Events fetch error', err); }
     };
     
     fetchData();
@@ -79,7 +81,9 @@ const Dashboard = () => {
     const checkDeptHealth = async (id) => {
       const start = Date.now();
       try {
-        const res = await fetch(`/api/dept${id}/health`);
+        const res = await fetch(`/api/dept${id}/health`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
         if (res.ok) setDeptHealth(prev => ({ ...prev, [id]: { status: 'ONLINE', latency: Date.now() - start } }));
         else throw new Error('Not OK');
       } catch (err) {
@@ -103,6 +107,11 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {error && (
+        <div className="bg-rose-100 text-rose-700 p-4 rounded-xl border border-rose-200">
+          Error loading dashboard data: {error}
+        </div>
+      )}
       
       {/* Platform Status Banner */}
       <div className={`rounded-xl p-6 flex flex-col md:flex-row justify-between items-center shadow-lg border relative overflow-hidden ${isPlatformHealthy ? 'bg-slate-900 border-slate-800' : 'bg-rose-900 border-rose-800'}`}>
