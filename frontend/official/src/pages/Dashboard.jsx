@@ -52,24 +52,24 @@ const Dashboard = () => {
       try {
         const m = await getMetrics();
         setMetrics(m);
-      } catch (err) { setError(err.message); console.error('Metrics fetch error', err); }
+      } catch (err) { setError(prev => prev || err.message); console.error('Metrics fetch error', err); }
 
       try {
         const h = await getGatewayHealth();
         setHealth({
-          status: h.status || 'UNKNOWN',
-          services: h.services || {
-            'api-gateway': { status: 'UNKNOWN', latency: 0 },
-            'mdm-engine': { status: 'UNKNOWN', latency: 0 },
-            'consent-service': { status: 'UNKNOWN', latency: 0 }
+          status: h.gateway === 'UP' ? 'ONLINE' : 'OFFLINE',
+          services: {
+            'api-gateway': { status: h.gateway === 'UP' ? 'ONLINE' : 'OFFLINE', latency: 0 },
+            'mdm-engine': { status: (h.services && h.services['/api/mdm'] === 'UP') ? 'ONLINE' : 'OFFLINE', latency: 0 },
+            'consent-service': { status: (h.services && h.services['/api/consent'] === 'UP') ? 'ONLINE' : 'OFFLINE', latency: 0 }
           }
         });
-      } catch (err) { setError(err.message); console.error('Health fetch error', err); }
+      } catch (err) { setError(prev => prev || err.message); console.error('Health fetch error', err); }
 
       try {
         const evts = await getRecentEvents(5);
         setPulseEvents(evts);
-      } catch (err) { setError(err.message); console.error('Events fetch error', err); }
+      } catch (err) { setError(prev => prev || err.message); console.error('Events fetch error', err); }
     };
     
     fetchData();

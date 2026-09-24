@@ -56,5 +56,5 @@ export const getCitizenRecord = (query, type) => {
 };
 export const getMetrics = () => api.get('/api/audit/metrics');
 export const getGatewayHealth = () => fetch(`${API_BASE}/health`).then(r => r.json());
-export const getRecentEvents = (limit = 5) => api.get(`/api/events/recent?limit=${limit}`);
+export const getRecentEvents = (limit = 5) => api.get(`/api/events/events/recent?limit=${limit}`);
 export const getWorkflows = () => api.get('/api/workflow/instances');
